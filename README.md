@@ -7,11 +7,10 @@ Aplicación clínica con arquitectura **Cliente-Servidor** y compatibilidad con 
 ## 📱 ¿Cómo usarlo en el celular?
 
 ### Opción 1: Alojado en GitHub Pages (Sin servidores encendidos)
-1. Sube este repositorio a tu cuenta de GitHub (`DevMauricio03/diabetes-prediccion`).
-2. Ve a **Settings** > **Pages** > Selecciona la rama `main` y carpeta `/ (root)`.
-3. Tu app estará disponible en:
-   👉 `https://DevMauricio03.github.io/diabetes-prediccion/`
-4. Ábrelo desde el navegador de tu celular y ¡listo! Ejecuta el modelo de Machine Learning directamente en el dispositivo móvil.
+1. Repositorio en GitHub: `DevMauricio03/glucocare-ai`.
+2. Alojado y publicado en GitHub Pages:
+   👉 **https://devmauricio03.github.io/glucocare-ai/**
+3. Ábrelo desde el navegador de tu celular y ¡listo! Ejecuta el modelo de Machine Learning directamente en el dispositivo móvil sin depender de ningún backend.
 
 ---
 
