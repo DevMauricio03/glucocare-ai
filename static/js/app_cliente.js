@@ -101,10 +101,32 @@ document.addEventListener("DOMContentLoaded", () => {
     const input = document.getElementById(campo);
     if (!input) return;
 
+    // Bloquear caracteres de notación científica ('e', 'E') y signos (+, -) en teclado
+    input.addEventListener("keydown", (e) => {
+      if (["e", "E", "+", "-"].includes(e.key)) {
+        e.preventDefault();
+      }
+    });
+
+    // Bloquear si intentan pegarlo con Ctrl+V / Cmd+V
+    input.addEventListener("paste", (e) => {
+      const textoPegado = (e.clipboardData || window.clipboardData).getData("text");
+      if (/[eE+-]/.test(textoPegado)) {
+        e.preventDefault();
+        const textoLimpio = textoPegado.replace(/[eE+-]/g, "");
+        document.execCommand("insertText", false, textoLimpio);
+      }
+    });
+
     input.addEventListener("input", () => {
       input.classList.remove("input-error");
       const errSpan = document.getElementById(`err-${campo}`);
       if (errSpan) errSpan.textContent = "";
+
+      // Limpiar residuo si algún método de entrada coló 'e', 'E', '+', '-'
+      if (/[eE+-]/.test(input.value)) {
+        input.value = input.value.replace(/[eE+-]/g, "");
+      }
 
       const valorTexto = input.value.trim().replace(",", ".");
       if (valorTexto === "") {
