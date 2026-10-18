@@ -10,7 +10,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const tituloDiag = document.getElementById("titulo-diagnostico");
   const descDiag = document.getElementById("desc-diagnostico");
   const listaFactores = document.getElementById("factores-lista");
-  const horaActualEl = document.getElementById("hora-actual");
   const etiquetaConexion = document.getElementById("texto-conexion");
   const bannerAlertaGlobal = document.getElementById("banner-alerta-global");
   const btnLimpiar = document.getElementById("btn-limpiar-campos");
@@ -36,16 +35,6 @@ document.addEventListener("DOMContentLoaded", () => {
   if (esGitHubPages && etiquetaConexion) {
     etiquetaConexion.textContent = "Motor ML en Celular";
   }
-
-  // Reloj de smartphone
-  function actualizarReloj() {
-    const ahora = new Date();
-    const h = String(ahora.getHours()).padStart(2, "0");
-    const m = String(ahora.getMinutes()).padStart(2, "0");
-    if (horaActualEl) horaActualEl.textContent = `${h}:${m}`;
-  }
-  actualizarReloj();
-  setInterval(actualizarReloj, 30000);
 
   // Perfiles de prueba clinica
   const perfiles = {
