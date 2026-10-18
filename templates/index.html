@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-  <title>GlucoCare AI · Diagnóstico Clínico de Diabetes</title>
-  <meta name="description" content="Sistema móvil cliente-servidor para predicción y detección temprana de diabetes asistido por Machine Learning.">
+  <title>GlucoCare AI · Diagnóstico Clínico Seguro</title>
+  <meta name="description" content="Sistema móvil cliente-servidor para predicción de diabetes con validación clínica defensiva.">
   <meta name="theme-color" content="#0f172a">
   <style>
     :root {
@@ -47,7 +47,7 @@
       padding: 16px 0;
     }
 
-    /* MARCO SIMULADOR DE CELULAR (Centrado en escritorio, full-width en smartphone) */
+    /* MARCO SMARTPHONE */
     .dispositivo-movil {
       width: 100%;
       max-width: 440px;
@@ -74,7 +74,7 @@
       }
     }
 
-    /* BARRA DE ESTADO TIPO CELULAR */
+    /* BARRA DE ESTADO */
     .barra-estado-movil {
       height: 44px;
       padding: 0 24px;
@@ -153,7 +153,7 @@
       gap: 16px;
     }
 
-    /* SELECCION RAPIDA DE PACIENTE (CHIPS HORIZONTALES) */
+    /* SELECCION RAPIDA DE PACIENTE */
     .modulo-chips {
       display: flex;
       flex-direction: column;
@@ -195,7 +195,20 @@
       transform: translateY(-1px);
     }
 
-    /* TARJETA DE RESULTADO / DIAGNOSTICO EN VIVO */
+    /* BANNER ALERTA DEFENSIVA */
+    #banner-alerta-global {
+      background: #fee2e2;
+      border-left: 4px solid #dc2626;
+      color: #991b1b;
+      padding: 12px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.4;
+      display: none;
+    }
+
+    /* TARJETA DE RESULTADO */
     .tarjeta-diagnostico {
       background: var(--color-tarjeta);
       border-radius: var(--radio-lg);
@@ -236,7 +249,6 @@
     .badge-alerta.rojo { background: var(--rojo-fondo); color: var(--rojo-peligro); }
     .badge-alerta.espera { background: #e2e8f0; color: var(--color-texto-2); }
 
-    /* GAUGE CIRCULAR DE RIESGO */
     .medidor-fila {
       display: flex;
       align-items: center;
@@ -372,6 +384,20 @@
       box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
       outline: none;
     }
+    /* Estilo defensivo de error en input */
+    .campo-input.input-error {
+      border-color: #dc2626 !important;
+      background-color: #fef2f2 !important;
+      box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15) !important;
+    }
+    .error-msg-campo {
+      font-size: 11px;
+      font-weight: 600;
+      color: #dc2626;
+      min-height: 14px;
+      margin-top: 2px;
+      transition: all 0.2s ease;
+    }
     .campo-unidad {
       position: absolute;
       right: 14px;
@@ -408,7 +434,7 @@
       cursor: not-allowed;
     }
 
-    /* BARRA DE NAVEGACION INFERIOR TIPO APP NATIVA */
+    /* BARRA DE NAVEGACION INFERIOR */
     .barra-navegacion-inferior {
       position: absolute;
       bottom: 0; left: 0; right: 0;
@@ -441,7 +467,7 @@
 </head>
 <body>
 
-  <!-- MARCO DE CELULAR SMARTPHONE -->
+  <!-- MARCO DE SMARTPHONE -->
   <main class="dispositivo-movil" role="main">
 
     <!-- BARRA DE ESTADO TIPO CELULAR -->
@@ -461,12 +487,12 @@
         </div>
         <div class="app-titulos">
           <h1>GlucoCare AI</h1>
-          <p>Evaluación Clínica en Línea</p>
+          <p>Evaluación Clínica Segura</p>
         </div>
       </div>
       <div class="indicador-conexion" title="Conexión cliente-servidor activa">
         <span class="punto-verde" aria-hidden="true"></span>
-        <span>Servidor Online</span>
+        <span id="texto-conexion">Servidor Online</span>
       </div>
     </section>
 
@@ -489,10 +515,13 @@
         </div>
       </section>
 
-      <!-- TARJETA DINÁMICA DE DIAGNÓSTICO (RESPUESTA DEL SERVIDOR) -->
+      <!-- BANNER DE ALERTA DEFENSIVA SI HAY ERRORES -->
+      <div id="banner-alerta-global" role="alert"></div>
+
+      <!-- TARJETA DINÁMICA DE DIAGNÓSTICO -->
       <section id="tarjeta-diagnostico" class="tarjeta-diagnostico" aria-live="polite">
         <div class="diag-cabecera">
-          <span class="etiqueta-seccion">Dictamen del Servidor ML</span>
+          <span class="etiqueta-seccion">Dictamen Clínico</span>
           <span id="badge-alerta" class="badge-alerta espera">En Espera</span>
         </div>
 
@@ -500,21 +529,21 @@
           <div class="medidor-svg-wrapper">
             <svg class="medidor-svg" viewBox="0 0 90 90" aria-hidden="true">
               <circle class="medidor-fondo" cx="45" cy="45" r="36" fill="none" stroke="#e2e8f0" stroke-width="8"></circle>
-              <circle id="medidor-progreso" class="medidor-progreso" cx="45" cy="45" r="36" fill="none" stroke="#0284c7" stroke-width="8" stroke-linecap="round" stroke-dasharray="226" stroke-dashoffset="226"></circle>
+              <circle id="medidor-progreso" class="medidor-progreso" cx="45" cy="45" r="36" fill="none" stroke="#0284c7" stroke-width="8" stroke-dasharray="226" stroke-dashoffset="226"></circle>
             </svg>
             <div id="medidor-porcentaje" class="medidor-texto-centro">0%</div>
           </div>
 
           <div class="diag-detalles">
             <h3 id="titulo-diagnostico">Sin Evaluar</h3>
-            <p id="desc-diagnostico">Ingresa los biomarcadores del paciente o pulsa un paciente de prueba arriba para consultar al servidor.</p>
+            <p id="desc-diagnostico">Ingresa los biomarcadores del paciente o selecciona un paciente de prueba para consultar al servidor.</p>
           </div>
         </div>
 
         <div id="factores-lista" class="factores-lista" style="display: none;"></div>
       </section>
 
-      <!-- FORMULARIO TÁCTIL DEL CLIENTE -->
+      <!-- FORMULARIO TÁCTIL CON LÍMITES ESTRICTOS -->
       <form id="form-diabetes" novalidate>
 
         <!-- GRUPO 1: SANGRE Y GLUCEMIA -->
@@ -530,9 +559,11 @@
               <span class="campo-rango">Normal: 70 – 99</span>
             </div>
             <div class="campo-input-caja">
-              <input class="campo-input" type="number" step="any" min="0" id="glucosa" name="glucosa" placeholder="Ej. 85" required>
+              <input class="campo-input" type="number" step="any" min="30" max="600" maxlength="3"
+                     id="glucosa" name="glucosa" placeholder="Ej. 85 (30-600)" required>
               <span class="campo-unidad">mg/dL</span>
             </div>
+            <span class="error-msg-campo" id="err-glucosa"></span>
           </div>
 
           <div class="campo-movil">
@@ -541,9 +572,11 @@
               <span class="campo-rango">Normal: 16 – 166</span>
             </div>
             <div class="campo-input-caja">
-              <input class="campo-input" type="number" step="any" min="0" id="insulina" name="insulina" placeholder="Ej. 94" required>
+              <input class="campo-input" type="number" step="any" min="0" max="850" maxlength="3"
+                     id="insulina" name="insulina" placeholder="Ej. 94 (0-850)" required>
               <span class="campo-unidad">μU/mL</span>
             </div>
+            <span class="error-msg-campo" id="err-insulina"></span>
           </div>
 
           <div class="campo-movil">
@@ -552,9 +585,11 @@
               <span class="campo-rango">Normal: 60 – 80</span>
             </div>
             <div class="campo-input-caja">
-              <input class="campo-input" type="number" step="any" min="0" id="presion_arterial" name="presion_arterial" placeholder="Ej. 70" required>
+              <input class="campo-input" type="number" step="any" min="30" max="180" maxlength="3"
+                     id="presion_arterial" name="presion_arterial" placeholder="Ej. 70 (30-180)" required>
               <span class="campo-unidad">mmHg</span>
             </div>
+            <span class="error-msg-campo" id="err-presion_arterial"></span>
           </div>
         </div>
 
@@ -571,9 +606,11 @@
               <span class="campo-rango">Normal: 18.5 – 24.9</span>
             </div>
             <div class="campo-input-caja">
-              <input class="campo-input" type="number" step="any" min="0" id="imc" name="imc" placeholder="Ej. 24.5" required>
+              <input class="campo-input" type="number" step="0.1" min="10" max="80" maxlength="5"
+                     id="imc" name="imc" placeholder="Ej. 24.5 (10-80)" required>
               <span class="campo-unidad">kg/m²</span>
             </div>
+            <span class="error-msg-campo" id="err-imc"></span>
           </div>
 
           <div class="campo-movil">
@@ -582,9 +619,12 @@
               <span class="campo-rango">Normal: 10 – 30</span>
             </div>
             <div class="campo-input-caja">
-              <input class="campo-input" type="number" step="any" min="0" id="grosor_piel" name="grosor_piel" placeholder="Ej. 20" required>
+              <!-- Blindaje estricto: max 99 mm, maxlength 2 digitos -->
+              <input class="campo-input" type="number" step="any" min="2" max="99" maxlength="2"
+                     id="grosor_piel" name="grosor_piel" placeholder="Ej. 20 (2-99)" required>
               <span class="campo-unidad">mm</span>
             </div>
+            <span class="error-msg-campo" id="err-grosor_piel"></span>
           </div>
         </div>
 
@@ -598,38 +638,44 @@
           <div class="campo-movil">
             <div class="campo-fila-top">
               <label class="campo-label" for="edad">Edad del Paciente</label>
-              <span class="campo-rango">Años cumplidos</span>
+              <span class="campo-rango">Años cumplidos (1-120)</span>
             </div>
             <div class="campo-input-caja">
-              <input class="campo-input" type="number" step="1" min="1" id="edad" name="edad" placeholder="Ej. 35" required>
+              <input class="campo-input" type="number" step="1" min="1" max="120" maxlength="3"
+                     id="edad" name="edad" placeholder="Ej. 35 (1-120)" required>
               <span class="campo-unidad">años</span>
             </div>
+            <span class="error-msg-campo" id="err-edad"></span>
           </div>
 
           <div class="campo-movil">
             <div class="campo-fila-top">
               <label class="campo-label" for="embarazos">Número de Embarazos</label>
-              <span class="campo-rango">Gestaciones</span>
+              <span class="campo-rango">Gestaciones (0-25)</span>
             </div>
             <div class="campo-input-caja">
-              <input class="campo-input" type="number" step="1" min="0" id="embarazos" name="embarazos" placeholder="Ej. 1" required>
+              <input class="campo-input" type="number" step="1" min="0" max="25" maxlength="2"
+                     id="embarazos" name="embarazos" placeholder="Ej. 1 (0-25)" required>
               <span class="campo-unidad">cant</span>
             </div>
+            <span class="error-msg-campo" id="err-embarazos"></span>
           </div>
 
           <div class="campo-movil">
             <div class="campo-fila-top">
               <label class="campo-label" for="pedigri_diabetes">Función de Pedigrí Genético</label>
-              <span class="campo-rango">Historial familiar: 0.08 – 2.4</span>
+              <span class="campo-rango">Índice familiar: 0.05 – 2.50</span>
             </div>
             <div class="campo-input-caja">
-              <input class="campo-input" type="number" step="any" min="0" id="pedigri_diabetes" name="pedigri_diabetes" placeholder="Ej. 0.35" required>
+              <input class="campo-input" type="number" step="0.01" min="0.05" max="2.50" maxlength="5"
+                     id="pedigri_diabetes" name="pedigri_diabetes" placeholder="Ej. 0.35 (0.05-2.50)" required>
               <span class="campo-unidad">índice</span>
             </div>
+            <span class="error-msg-campo" id="err-pedigri_diabetes"></span>
           </div>
         </div>
 
-        <!-- BOTÓN DE ENVÍO TÁCTIL AL SERVIDOR -->
+        <!-- BOTÓN DE ENVÍO TÁCTIL -->
         <button id="btn-analizar" type="submit" class="btn-analizar-movil">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
           <span>Analizar Paciente en Servidor</span>

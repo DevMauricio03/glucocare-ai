@@ -1,4 +1,4 @@
-// app_cliente.js: Logica hibrida Cliente-Servidor y GitHub Pages Autonomo
+// app_cliente.js: Cliente móvil con validación clínica defensiva (3 perfiles)
 
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("form-diabetes");
@@ -12,14 +12,27 @@ document.addEventListener("DOMContentLoaded", () => {
   const listaFactores = document.getElementById("factores-lista");
   const horaActualEl = document.getElementById("hora-actual");
   const etiquetaConexion = document.getElementById("texto-conexion");
+  const bannerAlertaGlobal = document.getElementById("banner-alerta-global");
 
-  // Detectar si estamos en GitHub Pages
+  // Reglas de validacion en cliente sincronizadas con el servidor
+  const REGLAS = {
+    embarazos: { min: 0, max: 25, entero: true, nombre: "Número de embarazos", unidad: "gestaciones" },
+    glucosa: { min: 30, max: 600, entero: false, nombre: "Glucosa plasmática", unidad: "mg/dL" },
+    presion_arterial: { min: 30, max: 180, entero: false, nombre: "Presión arterial", unidad: "mmHg" },
+    grosor_piel: { min: 2, max: 99, entero: false, nombre: "Pliegue cutáneo", unidad: "mm" },
+    insulina: { min: 0, max: 850, entero: false, nombre: "Insulina sérica", unidad: "μU/mL" },
+    imc: { min: 10, max: 80, entero: false, nombre: "IMC", unidad: "kg/m²" },
+    pedigri_diabetes: { min: 0.05, max: 2.50, entero: false, nombre: "Pedigrí genético", unidad: "índice" },
+    edad: { min: 1, max: 120, entero: true, nombre: "Edad del paciente", unidad: "años" }
+  };
+
+  // Detectar si estamos en GitHub Pages o servidor local
   const esGitHubPages = window.location.hostname.includes("github.io") || window.location.protocol === "file:";
   if (esGitHubPages && etiquetaConexion) {
     etiquetaConexion.textContent = "Motor ML en Celular";
   }
 
-  // Reloj de la barra de estado movil
+  // Reloj simulador de smartphone
   function actualizarReloj() {
     const ahora = new Date();
     const horas = String(ahora.getHours()).padStart(2, "0");
@@ -29,7 +42,7 @@ document.addEventListener("DOMContentLoaded", () => {
   actualizarReloj();
   setInterval(actualizarReloj, 30000);
 
-  // Perfiles de pacientes precargados
+  // Perfiles precargados seguros
   const perfiles = {
     sano: {
       embarazos: 1, glucosa: 85, presion_arterial: 66,
@@ -48,9 +61,57 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
-  // Botones Chips de seleccion rapida
+  // Limpiar mensajes de error previos
+  function limpiarErrores() {
+    document.querySelectorAll(".error-msg-campo").forEach(el => el.textContent = "");
+    document.querySelectorAll(".campo-input").forEach(el => el.classList.remove("input-error"));
+    if (bannerAlertaGlobal) {
+      bannerAlertaGlobal.style.display = "none";
+      bannerAlertaGlobal.textContent = "";
+    }
+  }
+
+  function mostrarErrorCampo(campo, mensaje) {
+    const input = document.getElementById(campo);
+    const errSpan = document.getElementById(`err-${campo}`);
+    if (input) input.classList.add("input-error");
+    if (errSpan) errSpan.textContent = `⚠️ ${mensaje}`;
+  }
+
+  // Validacion en tiempo real mientras el usuario escribe
+  Object.keys(REGLAS).forEach(campo => {
+    const input = document.getElementById(campo);
+    if (!input) return;
+
+    input.addEventListener("input", () => {
+      // Limpiar error del campo
+      input.classList.remove("input-error");
+      const errSpan = document.getElementById(`err-${campo}`);
+      if (errSpan) errSpan.textContent = "";
+
+      const valorTexto = input.value.trim().replace(",", ".");
+      if (valorTexto === "") return;
+
+      const num = parseFloat(valorTexto);
+      const regla = REGLAS[campo];
+
+      if (isNaN(num)) {
+        mostrarErrorCampo(campo, "Ingresa un número válido");
+        return;
+      }
+
+      if (num < regla.min) {
+        mostrarErrorCampo(campo, `Mínimo permitido: ${regla.min} ${regla.unidad}`);
+      } else if (num > regla.max) {
+        mostrarErrorCampo(campo, `Máximo permitido: ${regla.max} ${regla.unidad}`);
+      }
+    });
+  });
+
+  // Cargar chips de muestra rapida
   document.querySelectorAll(".chip-btn").forEach(btn => {
     btn.addEventListener("click", () => {
+      limpiarErrores();
       const tipo = btn.dataset.perfil;
       const datos = perfiles[tipo];
       if (datos) {
@@ -63,38 +124,76 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Envio manual
   form.addEventListener("submit", (e) => {
     e.preventDefault();
     enviarPeticionDiagnostico();
   });
 
   async function enviarPeticionDiagnostico() {
-    const campos = [
-      "embarazos", "glucosa", "presion_arterial", "grosor_piel",
-      "insulina", "imc", "pedigri_diabetes", "edad"
-    ];
-
+    limpiarErrores();
     const payload = {};
-    for (const c of campos) {
-      const el = document.getElementById(c);
-      if (!el || el.value.trim() === "") {
-        alert("Por favor completa todos los biomarcadores.");
-        el?.focus();
-        return;
+    let primerErrorCampo = null;
+    let hayErrores = false;
+
+    // Validacion exhaustiva previa al envio (Defense in Depth en el Cliente)
+    for (const [campo, regla] of Object.entries(REGLAS)) {
+      const input = document.getElementById(campo);
+      const valorStr = input ? input.value.trim().replace(",", ".") : "";
+
+      if (!input || valorStr === "") {
+        mostrarErrorCampo(campo, `Este campo es obligatorio`);
+        if (!primerErrorCampo) primerErrorCampo = input;
+        hayErrores = true;
+        continue;
       }
-      payload[c] = parseFloat(el.value);
+
+      const num = parseFloat(valorStr);
+      if (isNaN(num) || !isFinite(num)) {
+        mostrarErrorCampo(campo, `Ingresa un valor numérico real`);
+        if (!primerErrorCampo) primerErrorCampo = input;
+        hayErrores = true;
+        continue;
+      }
+
+      if (regla.entero && !Number.isInteger(num)) {
+        mostrarErrorCampo(campo, `Debe ser un número entero`);
+        if (!primerErrorCampo) primerErrorCampo = input;
+        hayErrores = true;
+        continue;
+      }
+
+      if (num < regla.min || num > regla.max) {
+        mostrarErrorCampo(campo, `Rango clínico permitido: ${regla.min} a ${regla.max} ${regla.unidad}`);
+        if (!primerErrorCampo) primerErrorCampo = input;
+        hayErrores = true;
+        continue;
+      }
+
+      payload[campo] = regla.entero ? parseInt(num, 10) : num;
     }
 
+    if (hayErrores) {
+      if (bannerAlertaGlobal) {
+        bannerAlertaGlobal.textContent = "Revisa los campos señalados en rojo con valores fuera de límites médicos.";
+        bannerAlertaGlobal.style.display = "block";
+      }
+      if (primerErrorCampo) {
+        primerErrorCampo.scrollIntoView({ behavior: "smooth", block: "center" });
+        primerErrorCampo.focus();
+      }
+      return;
+    }
+
+    // Feedback de carga
     btnAnalizar.disabled = true;
     btnAnalizar.innerHTML = `
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg>
+      <svg class="anim-girar" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg>
       Evaluando Paciente...
     `;
 
     let resultado = null;
 
-    // Si estamos en un servidor con backend disponible, intentar fetch
+    // Modo 1: Si hay servidor Flask REST
     if (!esGitHubPages) {
       try {
         const respuesta = await fetch("/api/predecir", {
@@ -102,26 +201,37 @@ document.addEventListener("DOMContentLoaded", () => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload)
         });
-        if (respuesta.ok) {
-          resultado = await respuesta.json();
+
+        const data = await respuesta.json();
+        if (respuesta.ok && data.exito) {
+          resultado = data;
+        } else {
+          // Si el servidor detecto alteracion maliciosa
+          if (bannerAlertaGlobal) {
+            bannerAlertaGlobal.textContent = "Alerta del Servidor: " + (data.error || "Datos rechazados por validación");
+            bannerAlertaGlobal.style.display = "block";
+          }
         }
       } catch (err) {
-        console.warn("Servidor backend no disponible, activando motor ML local del cliente:", err);
+        console.warn("Servidor no accesible, recurriendo a motor local:", err);
       }
     }
 
-    // Fallback automatico: Si estamos en GitHub Pages o el servidor no respondio,
-    // usamos la inferencia del modelo exportado en JavaScript
+    // Modo 2: GitHub Pages / Fallback offline
     if (!resultado && typeof predecirDiabetesEnNavegador === "function") {
       resultado = predecirDiabetesEnNavegador(payload);
-      if (etiquetaConexion) etiquetaConexion.textContent = "Motor ML Local";
+      if (resultado && !resultado.exito) {
+        if (bannerAlertaGlobal) {
+          bannerAlertaGlobal.textContent = resultado.error;
+          bannerAlertaGlobal.style.display = "block";
+        }
+        resultado = null;
+      }
     }
 
     if (resultado && resultado.exito) {
       actualizarInterfazResultado(resultado);
       tarjetaDiag.scrollIntoView({ behavior: "smooth", block: "start" });
-    } else {
-      alert("No se pudo procesar la predicción clínica.");
     }
 
     btnAnalizar.disabled = false;
@@ -176,7 +286,7 @@ document.addEventListener("DOMContentLoaded", () => {
       } else if (accion === "inicio") {
         document.querySelector(".contenido-scroll").scrollTo({ top: 0, behavior: "smooth" });
       } else if (accion === "info") {
-        alert("GlucoCare AI v1.0\nCompatible con GitHub Pages y Servidor Flask.\nModelo entrenado con Pima Indians Diabetes Dataset.");
+        alert("GlucoCare AI v1.0\nSistema clínico con triple validación defensiva (Usuario, Alteraciones y Seguridad de Servidor).");
       }
     });
   });
