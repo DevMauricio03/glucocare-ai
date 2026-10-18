@@ -3,474 +3,17 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-  <title>GlucoCare AI · Diagnóstico Clínico Seguro</title>
-  <meta name="description" content="Sistema móvil cliente-servidor para predicción de diabetes con validación clínica defensiva.">
+  <title>GlucoCare AI · Evaluación de Riesgo de Diabetes</title>
+  <meta name="description" content="Sistema móvil clínico para la predicción de diabetes basado en los pilares de la experiencia de usuario (UX).">
   <meta name="theme-color" content="#0f172a">
-  <style>
-    :root {
-      --color-primario: #0284c7;
-      --color-primario-oscuro: #0369a1;
-      --color-fondo-app: #f1f5f9;
-      --color-tarjeta: #ffffff;
-      --color-texto-1: #0f172a;
-      --color-texto-2: #475569;
-      --color-texto-3: #94a3b8;
-      --color-borde: #e2e8f0;
-      
-      --verde-exito: #16a34a;
-      --verde-fondo: #dcfce7;
-      --ambar-alerta: #d97706;
-      --ambar-fondo: #fef3c7;
-      --rojo-peligro: #dc2626;
-      --rojo-fondo: #fee2e2;
-
-      --radio-md: 14px;
-      --radio-lg: 20px;
-      --sombra-card: 0 4px 16px -2px rgba(15, 23, 42, 0.06), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background-color: #0b1329;
-      color: var(--color-texto-1);
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 16px 0;
-    }
-
-    /* MARCO SMARTPHONE */
-    .dispositivo-movil {
-      width: 100%;
-      max-width: 440px;
-      min-height: 880px;
-      background: var(--color-fondo-app);
-      border-radius: 44px;
-      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.6), 0 0 0 10px #1e293b;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      position: relative;
-    }
-
-    @media (max-width: 480px) {
-      body {
-        padding: 0;
-        background-color: var(--color-fondo-app);
-      }
-      .dispositivo-movil {
-        max-width: 100%;
-        min-height: 100vh;
-        border-radius: 0;
-        box-shadow: none;
-      }
-    }
-
-    /* BARRA DE ESTADO */
-    .barra-estado-movil {
-      height: 44px;
-      padding: 0 24px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 13px;
-      font-weight: 600;
-      color: #fff;
-      background: #0f172a;
-    }
-    .estado-iconos {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    /* CABECERA APP MEDICA */
-    .cabecera-app {
-      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
-      color: #fff;
-      padding: 16px 20px 22px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .perfil-app {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .app-avatar {
-      width: 42px;
-      height: 42px;
-      background: rgba(255, 255, 255, 0.2);
-      backdrop-filter: blur(8px);
-      border-radius: 12px;
-      display: grid;
-      place-items: center;
-      color: #fff;
-    }
-    .app-titulos h1 {
-      font-size: 18px;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-    }
-    .app-titulos p {
-      font-size: 12px;
-      color: #e0f2fe;
-    }
-    .indicador-conexion {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 10px;
-      border-radius: 20px;
-      background: rgba(255, 255, 255, 0.16);
-      font-size: 11px;
-      font-weight: 600;
-    }
-    .punto-verde {
-      width: 8px;
-      height: 8px;
-      background: #4ade80;
-      border-radius: 50%;
-      box-shadow: 0 0 8px #4ade80;
-    }
-
-    /* CONTENIDO CON SCROLL EN EL CELULAR */
-    .contenido-scroll {
-      flex: 1;
-      padding: 18px 16px 84px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    /* SELECCION RAPIDA DE PACIENTE */
-    .modulo-chips {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    .etiqueta-seccion {
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--color-texto-2);
-      font-weight: 700;
-    }
-    .lista-chips {
-      display: flex;
-      gap: 8px;
-      overflow-x: auto;
-      padding-bottom: 4px;
-    }
-    .chip-btn {
-      background: var(--color-tarjeta);
-      border: 1px solid var(--color-borde);
-      border-radius: 20px;
-      padding: 8px 14px;
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--color-texto-2);
-      white-space: nowrap;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
-    }
-    .chip-btn:hover, .chip-btn:active {
-      background: #f8fafc;
-      border-color: var(--color-primario);
-      color: var(--color-primario);
-      transform: translateY(-1px);
-    }
-
-    /* BANNER ALERTA DEFENSIVA */
-    #banner-alerta-global {
-      background: #fee2e2;
-      border-left: 4px solid #dc2626;
-      color: #991b1b;
-      padding: 12px 14px;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 600;
-      line-height: 1.4;
-      display: none;
-    }
-
-    /* TARJETA DE RESULTADO */
-    .tarjeta-diagnostico {
-      background: var(--color-tarjeta);
-      border-radius: var(--radio-lg);
-      padding: 20px;
-      box-shadow: var(--sombra-card);
-      border: 1px solid var(--color-borde);
-      position: relative;
-      overflow: hidden;
-      transition: all 0.3s ease;
-    }
-    .tarjeta-diagnostico::before {
-      content: "";
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 4px;
-      background: var(--color-primario);
-    }
-    .tarjeta-diagnostico.estado-verde::before { background: var(--verde-exito); }
-    .tarjeta-diagnostico.estado-ambar::before { background: var(--ambar-alerta); }
-    .tarjeta-diagnostico.estado-rojo::before { background: var(--rojo-peligro); }
-
-    .diag-cabecera {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-    }
-    .badge-alerta {
-      padding: 5px 12px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-    .badge-alerta.verde { background: var(--verde-fondo); color: var(--verde-exito); }
-    .badge-alerta.ambar { background: var(--ambar-fondo); color: var(--ambar-alerta); }
-    .badge-alerta.rojo { background: var(--rojo-fondo); color: var(--rojo-peligro); }
-    .badge-alerta.espera { background: #e2e8f0; color: var(--color-texto-2); }
-
-    .medidor-fila {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      margin: 10px 0;
-    }
-    .medidor-svg-wrapper {
-      width: 90px;
-      height: 90px;
-      flex-shrink: 0;
-      position: relative;
-      display: grid;
-      place-items: center;
-    }
-    .medidor-svg {
-      width: 100%;
-      height: 100%;
-      transform: rotate(-90deg);
-    }
-    .medidor-fondo {
-      fill: none;
-      stroke: #e2e8f0;
-      stroke-width: 8;
-    }
-    .medidor-progreso {
-      fill: none;
-      stroke: var(--color-primario);
-      stroke-width: 8;
-      stroke-linecap: round;
-      stroke-dasharray: 226;
-      stroke-dashoffset: 226;
-      transition: stroke-dashoffset 0.8s ease, stroke 0.4s ease;
-    }
-    .medidor-texto-centro {
-      position: absolute;
-      font-size: 18px;
-      font-weight: 800;
-      color: var(--color-texto-1);
-    }
-
-    .diag-detalles h3 {
-      font-size: 15px;
-      font-weight: 700;
-      margin-bottom: 4px;
-      line-height: 1.25;
-    }
-    .diag-detalles p {
-      font-size: 13px;
-      color: var(--color-texto-2);
-      line-height: 1.4;
-    }
-
-    .factores-lista {
-      margin-top: 12px;
-      padding-top: 12px;
-      border-top: 1px dashed var(--color-borde);
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    .factor-item {
-      font-size: 12px;
-      color: #b91c1c;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    /* TARJETAS DEL FORMULARIO */
-    .card-grupo {
-      background: var(--color-tarjeta);
-      border-radius: var(--radio-lg);
-      padding: 16px 18px;
-      box-shadow: var(--sombra-card);
-      border: 1px solid var(--color-borde);
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-    .card-grupo-titulo {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 14px;
-      font-weight: 700;
-      color: var(--color-texto-1);
-      padding-bottom: 8px;
-      border-bottom: 1px solid var(--color-borde);
-    }
-    .card-grupo-titulo svg {
-      color: var(--color-primario);
-    }
-
-    .campo-movil {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-    .campo-fila-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .campo-label {
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--color-texto-1);
-    }
-    .campo-rango {
-      font-size: 11px;
-      color: var(--color-texto-3);
-    }
-    .campo-input-caja {
-      position: relative;
-      display: flex;
-      align-items: center;
-    }
-    .campo-input {
-      width: 100%;
-      height: 48px;
-      border-radius: var(--radio-md);
-      border: 1.5px solid var(--color-borde);
-      background: #f8fafc;
-      padding: 0 48px 0 14px;
-      font-size: 16px;
-      font-weight: 500;
-      color: var(--color-texto-1);
-      transition: all 0.2s ease;
-    }
-    .campo-input:focus {
-      background: #fff;
-      border-color: var(--color-primario);
-      box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
-      outline: none;
-    }
-    /* Estilo defensivo de error en input */
-    .campo-input.input-error {
-      border-color: #dc2626 !important;
-      background-color: #fef2f2 !important;
-      box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15) !important;
-    }
-    .error-msg-campo {
-      font-size: 11px;
-      font-weight: 600;
-      color: #dc2626;
-      min-height: 14px;
-      margin-top: 2px;
-      transition: all 0.2s ease;
-    }
-    .campo-unidad {
-      position: absolute;
-      right: 14px;
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--color-texto-3);
-      pointer-events: none;
-    }
-
-    /* BOTON DE ACCION TACTIL */
-    .btn-analizar-movil {
-      width: 100%;
-      height: 52px;
-      border-radius: 30px;
-      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
-      color: #fff;
-      border: none;
-      font-size: 16px;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      box-shadow: 0 6px 18px rgba(2, 132, 199, 0.35);
-      cursor: pointer;
-      transition: all 0.2s ease;
-      margin-top: 8px;
-    }
-    .btn-analizar-movil:active {
-      transform: scale(0.98);
-    }
-    .btn-analizar-movil:disabled {
-      opacity: 0.7;
-      cursor: not-allowed;
-    }
-
-    /* BARRA DE NAVEGACION INFERIOR */
-    .barra-navegacion-inferior {
-      position: absolute;
-      bottom: 0; left: 0; right: 0;
-      height: 64px;
-      background: #ffffff;
-      border-top: 1px solid var(--color-borde);
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      padding: 0 8px;
-      z-index: 10;
-    }
-    .nav-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--color-texto-3);
-      background: none;
-      border: none;
-      cursor: pointer;
-      padding: 6px 12px;
-    }
-    .nav-item.activo {
-      color: var(--color-primario);
-    }
-  </style>
+  <link rel="stylesheet" href="static/css/mobile.css">
 </head>
 <body>
 
-  <!-- MARCO DE SMARTPHONE -->
+  <!-- MARCO DE SMARTPHONE ERGONÓMICO -->
   <main class="dispositivo-movil" role="main">
 
-    <!-- BARRA DE ESTADO TIPO CELULAR -->
+    <!-- BARRA DE ESTADO DE SMARTPHONE -->
     <header class="barra-estado-movil" aria-label="Estado del teléfono">
       <span id="hora-actual" class="hora">09:41</span>
       <div class="estado-iconos">
@@ -490,35 +33,38 @@
           <p>Evaluación Clínica Segura</p>
         </div>
       </div>
-      <div class="indicador-conexion" title="Conexión cliente-servidor activa">
+      <div class="indicador-conexion" title="Estado de conectividad del modelo">
         <span class="punto-verde" aria-hidden="true"></span>
         <span id="texto-conexion">Servidor Online</span>
       </div>
     </section>
 
-    <!-- CONTENIDO CON SCROLL EN EL CELULAR -->
+    <!-- CONTENIDO CON SCROLL ERGONÓMICO -->
     <div class="contenido-scroll">
 
-      <!-- SELECCIÓN RÁPIDA DE PACIENTES DE MUESTRA -->
+      <!-- PILAR UX 1: SELECCIÓN RÁPIDA DE PACIENTES (REDUCCIÓN DE CARGA COGNITIVA) -->
       <section class="modulo-chips" aria-label="Muestras rápidas">
-        <span class="etiqueta-seccion">Pacientes de prueba rápida:</span>
+        <div class="etiqueta-fila-chips">
+          <span class="etiqueta-seccion">Pacientes de prueba rápida:</span>
+          <button type="button" id="btn-limpiar-campos" class="btn-limpiar-texto">Limpiar todo</button>
+        </div>
         <div class="lista-chips">
           <button type="button" class="chip-btn" data-perfil="sano">
-            🟢 Paciente Sano
+            <span>🟢</span> <span>Paciente Sano</span>
           </button>
           <button type="button" class="chip-btn" data-perfil="moderado">
-            🟡 Alerta Moderada
+            <span>🟡</span> <span>Alerta Moderada</span>
           </button>
           <button type="button" class="chip-btn" data-perfil="critico">
-            🔴 Caso Crítico
+            <span>🔴</span> <span>Caso Crítico</span>
           </button>
         </div>
       </section>
 
-      <!-- BANNER DE ALERTA DEFENSIVA SI HAY ERRORES -->
+      <!-- BANNER DE ALERTA DEFENSIVA (VISIBILIDAD DEL ESTADO DEL SISTEMA) -->
       <div id="banner-alerta-global" role="alert"></div>
 
-      <!-- TARJETA DINÁMICA DE DIAGNÓSTICO -->
+      <!-- PILAR UX 2: TARJETA HERO DE DIAGNÓSTICO CON GAUGE VISUAL -->
       <section id="tarjeta-diagnostico" class="tarjeta-diagnostico" aria-live="polite">
         <div class="diag-cabecera">
           <span class="etiqueta-seccion">Dictamen Clínico</span>
@@ -528,163 +74,272 @@
         <div class="medidor-fila">
           <div class="medidor-svg-wrapper">
             <svg class="medidor-svg" viewBox="0 0 90 90" aria-hidden="true">
-              <circle class="medidor-fondo" cx="45" cy="45" r="36" fill="none" stroke="#e2e8f0" stroke-width="8"></circle>
-              <circle id="medidor-progreso" class="medidor-progreso" cx="45" cy="45" r="36" fill="none" stroke="#0284c7" stroke-width="8" stroke-dasharray="226" stroke-dashoffset="226"></circle>
+              <circle class="medidor-fondo" cx="45" cy="45" r="36"></circle>
+              <circle id="medidor-progreso" class="medidor-progreso" cx="45" cy="45" r="36"></circle>
             </svg>
-            <div id="medidor-porcentaje" class="medidor-texto-centro">0%</div>
+            <div class="medidor-texto-centro">
+              <span id="cifra-porcentaje-num" class="cifra-porcentaje">0%</span>
+              <span class="cifra-label">Riesgo</span>
+            </div>
           </div>
 
           <div class="diag-detalles">
             <h3 id="titulo-diagnostico">Sin Evaluar</h3>
-            <p id="desc-diagnostico">Ingresa los biomarcadores del paciente o selecciona un paciente de prueba para consultar al servidor.</p>
+            <p id="desc-diagnostico">Ingresa los biomarcadores del paciente o selecciona un paciente de prueba arriba para obtener el veredicto del modelo.</p>
           </div>
         </div>
 
         <div id="factores-lista" class="factores-lista" style="display: none;"></div>
       </section>
 
-      <!-- FORMULARIO TÁCTIL CON LÍMITES ESTRICTOS -->
+      <!-- PILAR UX 3: SEGMENTED CONTROL / PESTAÑAS PARA ORGANIZAR LA INFORMACIÓN -->
+      <div class="control-pasos" role="tablist">
+        <button type="button" class="paso-tab activo" data-filtro="todos">Todos</button>
+        <button type="button" class="paso-tab" data-filtro="sangre">🩸 Sangre</button>
+        <button type="button" class="paso-tab" data-filtro="cuerpo">⚖️ Cuerpo</button>
+        <button type="button" class="paso-tab" data-filtro="perfil">📋 Perfil</button>
+      </div>
+
+      <!-- FORMULARIO CLÍNICO ERGONÓMICO -->
       <form id="form-diabetes" novalidate>
 
-        <!-- GRUPO 1: SANGRE Y GLUCEMIA -->
-        <div class="card-grupo">
-          <div class="card-grupo-titulo">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>
-            <span>1. Perfil Glucémico &amp; Sangre</span>
+        <!-- FASE 1: SANGRE Y GLUCEMIA -->
+        <div class="card-grupo" data-categoria="sangre">
+          <div class="card-grupo-cabecera">
+            <div class="card-grupo-titulo">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>
+              <span>1. Perfil Glucémico &amp; Sangre</span>
+            </div>
+            <span class="badge-paso">Fase 1</span>
           </div>
 
+          <!-- Glucosa -->
           <div class="campo-movil">
             <div class="campo-fila-top">
-              <label class="campo-label" for="glucosa">Glucosa Plasmática</label>
-              <span class="campo-rango">Normal: 70 – 99</span>
+              <div class="campo-label-con-info">
+                <label class="campo-label" for="glucosa">Glucosa Plasmática</label>
+                <button type="button" class="btn-info-tooltip" data-campo="glucosa" aria-label="Información de glucosa">ⓘ</button>
+              </div>
+              <span class="campo-rango-badge">Óptimo: 70 – 99</span>
+            </div>
+            <div class="caja-explicacion" id="exp-glucosa">
+              💡 Nivel de azúcar en sangre tras 2 horas de ayuno o prueba oral. Valores ≥ 126 mg/dL en ayunas o ≥ 200 mg/dL casual indican diabetes.
             </div>
             <div class="campo-input-caja">
               <input class="campo-input" type="number" step="any" min="30" max="600" maxlength="3"
-                     id="glucosa" name="glucosa" placeholder="Ej. 85 (30-600)" required>
+                     id="glucosa" name="glucosa" placeholder="Ej. 85 (30 a 600)" required>
               <span class="campo-unidad">mg/dL</span>
+            </div>
+            <div class="mini-rango-track">
+              <div class="mini-rango-zona-saludable" style="left: 7%; width: 5%;"></div>
+              <div class="mini-rango-marcador" id="marcador-glucosa" style="left: 0%;"></div>
             </div>
             <span class="error-msg-campo" id="err-glucosa"></span>
           </div>
 
+          <!-- Insulina -->
           <div class="campo-movil">
             <div class="campo-fila-top">
-              <label class="campo-label" for="insulina">Insulina Sérica (2h)</label>
-              <span class="campo-rango">Normal: 16 – 166</span>
+              <div class="campo-label-con-info">
+                <label class="campo-label" for="insulina">Insulina Sérica (2h)</label>
+                <button type="button" class="btn-info-tooltip" data-campo="insulina" aria-label="Información de insulina">ⓘ</button>
+              </div>
+              <span class="campo-rango-badge">Óptimo: 16 – 166</span>
+            </div>
+            <div class="caja-explicacion" id="exp-insulina">
+              💡 Hormona pancreática que permite que la glucosa ingrese a las células. Niveles muy elevados reflejan resistencia a la insulina.
             </div>
             <div class="campo-input-caja">
               <input class="campo-input" type="number" step="any" min="0" max="850" maxlength="3"
-                     id="insulina" name="insulina" placeholder="Ej. 94 (0-850)" required>
+                     id="insulina" name="insulina" placeholder="Ej. 94 (0 a 850)" required>
               <span class="campo-unidad">μU/mL</span>
+            </div>
+            <div class="mini-rango-track">
+              <div class="mini-rango-zona-saludable" style="left: 2%; width: 17%;"></div>
+              <div class="mini-rango-marcador" id="marcador-insulina" style="left: 0%;"></div>
             </div>
             <span class="error-msg-campo" id="err-insulina"></span>
           </div>
 
+          <!-- Presión Arterial -->
           <div class="campo-movil">
             <div class="campo-fila-top">
-              <label class="campo-label" for="presion_arterial">Presión Diastólica</label>
-              <span class="campo-rango">Normal: 60 – 80</span>
+              <div class="campo-label-con-info">
+                <label class="campo-label" for="presion_arterial">Presión Diastólica</label>
+                <button type="button" class="btn-info-tooltip" data-campo="presion_arterial" aria-label="Información de presión">ⓘ</button>
+              </div>
+              <span class="campo-rango-badge">Óptimo: 60 – 80</span>
+            </div>
+            <div class="caja-explicacion" id="exp-presion_arterial">
+              💡 Presión mínima en las arterias cuando el corazón descansa entre latidos. La hipertensión es un comórbido común de la diabetes.
             </div>
             <div class="campo-input-caja">
               <input class="campo-input" type="number" step="any" min="30" max="180" maxlength="3"
-                     id="presion_arterial" name="presion_arterial" placeholder="Ej. 70 (30-180)" required>
+                     id="presion_arterial" name="presion_arterial" placeholder="Ej. 70 (30 a 180)" required>
               <span class="campo-unidad">mmHg</span>
+            </div>
+            <div class="mini-rango-track">
+              <div class="mini-rango-zona-saludable" style="left: 20%; width: 13%;"></div>
+              <div class="mini-rango-marcador" id="marcador-presion_arterial" style="left: 0%;"></div>
             </div>
             <span class="error-msg-campo" id="err-presion_arterial"></span>
           </div>
         </div>
 
-        <!-- GRUPO 2: ANTROPOMETRÍA -->
-        <div class="card-grupo">
-          <div class="card-grupo-titulo">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"></path><line x1="16" y1="8" x2="2" y2="22"></line><line x1="17.5" y1="15" x2="9" y2="15"></line></svg>
-            <span>2. Antropometría &amp; Composición</span>
+        <!-- FASE 2: ANTROPOMETRÍA -->
+        <div class="card-grupo" data-categoria="cuerpo">
+          <div class="card-grupo-cabecera">
+            <div class="card-grupo-titulo">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"></path><line x1="16" y1="8" x2="2" y2="22"></line><line x1="17.5" y1="15" x2="9" y2="15"></line></svg>
+              <span>2. Antropometría &amp; Composición</span>
+            </div>
+            <span class="badge-paso">Fase 2</span>
           </div>
 
+          <!-- IMC -->
           <div class="campo-movil">
             <div class="campo-fila-top">
-              <label class="campo-label" for="imc">Índice de Masa Corporal (IMC)</label>
-              <span class="campo-rango">Normal: 18.5 – 24.9</span>
+              <div class="campo-label-con-info">
+                <label class="campo-label" for="imc">Índice de Masa Corporal (IMC)</label>
+                <button type="button" class="btn-info-tooltip" data-campo="imc" aria-label="Información de IMC">ⓘ</button>
+              </div>
+              <span class="campo-rango-badge">Óptimo: 18.5 – 24.9</span>
+            </div>
+            <div class="caja-explicacion" id="exp-imc">
+              💡 Peso (kg) dividido por altura al cuadrado (m²). Sobrepeso &gt; 25, Obesidad &gt; 30 (principal factor de riesgo metabólico).
             </div>
             <div class="campo-input-caja">
               <input class="campo-input" type="number" step="0.1" min="10" max="80" maxlength="5"
-                     id="imc" name="imc" placeholder="Ej. 24.5 (10-80)" required>
+                     id="imc" name="imc" placeholder="Ej. 24.5 (10 a 80)" required>
               <span class="campo-unidad">kg/m²</span>
+            </div>
+            <div class="mini-rango-track">
+              <div class="mini-rango-zona-saludable" style="left: 12%; width: 9%;"></div>
+              <div class="mini-rango-marcador" id="marcador-imc" style="left: 0%;"></div>
             </div>
             <span class="error-msg-campo" id="err-imc"></span>
           </div>
 
+          <!-- Grosor de Piel -->
           <div class="campo-movil">
             <div class="campo-fila-top">
-              <label class="campo-label" for="grosor_piel">Pliegue Cutáneo (Tríceps)</label>
-              <span class="campo-rango">Normal: 10 – 30</span>
+              <div class="campo-label-con-info">
+                <label class="campo-label" for="grosor_piel">Pliegue Cutáneo (Tríceps)</label>
+                <button type="button" class="btn-info-tooltip" data-campo="grosor_piel" aria-label="Información de pliegue">ⓘ</button>
+              </div>
+              <span class="campo-rango-badge">Óptimo: 10 – 30</span>
+            </div>
+            <div class="caja-explicacion" id="exp-grosor_piel">
+              💡 Medición con plicómetro del pliegue de grasa bajo la piel del brazo. Indica distribución de grasa corporal subcutánea (rango: 2 a 99 mm).
             </div>
             <div class="campo-input-caja">
-              <!-- Blindaje estricto: max 99 mm, maxlength 2 digitos -->
               <input class="campo-input" type="number" step="any" min="2" max="99" maxlength="2"
-                     id="grosor_piel" name="grosor_piel" placeholder="Ej. 20 (2-99)" required>
+                     id="grosor_piel" name="grosor_piel" placeholder="Ej. 20 (2 a 99)" required>
               <span class="campo-unidad">mm</span>
+            </div>
+            <div class="mini-rango-track">
+              <div class="mini-rango-zona-saludable" style="left: 8%; width: 21%;"></div>
+              <div class="mini-rango-marcador" id="marcador-grosor_piel" style="left: 0%;"></div>
             </div>
             <span class="error-msg-campo" id="err-grosor_piel"></span>
           </div>
         </div>
 
-        <!-- GRUPO 3: HISTORIAL & DEMOGRAFÍA -->
-        <div class="card-grupo">
-          <div class="card-grupo-titulo">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-            <span>3. Datos Demográficos &amp; Pedigrí</span>
+        <!-- FASE 3: HISTORIAL & DEMOGRAFÍA -->
+        <div class="card-grupo" data-categoria="perfil">
+          <div class="card-grupo-cabecera">
+            <div class="card-grupo-titulo">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+              <span>3. Datos Demográficos &amp; Pedigrí</span>
+            </div>
+            <span class="badge-paso">Fase 3</span>
           </div>
 
+          <!-- Edad -->
           <div class="campo-movil">
             <div class="campo-fila-top">
-              <label class="campo-label" for="edad">Edad del Paciente</label>
-              <span class="campo-rango">Años cumplidos (1-120)</span>
+              <div class="campo-label-con-info">
+                <label class="campo-label" for="edad">Edad del Paciente</label>
+                <button type="button" class="btn-info-tooltip" data-campo="edad" aria-label="Información de edad">ⓘ</button>
+              </div>
+              <span class="campo-rango-badge">Años (1 a 120)</span>
+            </div>
+            <div class="caja-explicacion" id="exp-edad">
+              💡 La resistencia a la insulina suele aumentar con la edad, especialmente después de los 45 años.
             </div>
             <div class="campo-input-caja">
               <input class="campo-input" type="number" step="1" min="1" max="120" maxlength="3"
-                     id="edad" name="edad" placeholder="Ej. 35 (1-120)" required>
+                     id="edad" name="edad" placeholder="Ej. 35 (1 a 120)" required>
               <span class="campo-unidad">años</span>
+            </div>
+            <div class="mini-rango-track">
+              <div class="mini-rango-zona-saludable" style="left: 14%; width: 23%;"></div>
+              <div class="mini-rango-marcador" id="marcador-edad" style="left: 0%;"></div>
             </div>
             <span class="error-msg-campo" id="err-edad"></span>
           </div>
 
+          <!-- Embarazos -->
           <div class="campo-movil">
             <div class="campo-fila-top">
-              <label class="campo-label" for="embarazos">Número de Embarazos</label>
-              <span class="campo-rango">Gestaciones (0-25)</span>
+              <div class="campo-label-con-info">
+                <label class="campo-label" for="embarazos">Número de Embarazos</label>
+                <button type="button" class="btn-info-tooltip" data-campo="embarazos" aria-label="Información de embarazos">ⓘ</button>
+              </div>
+              <span class="campo-rango-badge">Gestaciones (0 a 25)</span>
+            </div>
+            <div class="caja-explicacion" id="exp-embarazos">
+              💡 Número de embarazos previos. Múltiples gestaciones o historial de diabetes gestacional elevan el riesgo a largo plazo.
             </div>
             <div class="campo-input-caja">
               <input class="campo-input" type="number" step="1" min="0" max="25" maxlength="2"
-                     id="embarazos" name="embarazos" placeholder="Ej. 1 (0-25)" required>
+                     id="embarazos" name="embarazos" placeholder="Ej. 1 (0 a 25)" required>
               <span class="campo-unidad">cant</span>
+            </div>
+            <div class="mini-rango-track">
+              <div class="mini-rango-zona-saludable" style="left: 0%; width: 12%;"></div>
+              <div class="mini-rango-marcador" id="marcador-embarazos" style="left: 0%;"></div>
             </div>
             <span class="error-msg-campo" id="err-embarazos"></span>
           </div>
 
+          <!-- Pedigrí -->
           <div class="campo-movil">
             <div class="campo-fila-top">
-              <label class="campo-label" for="pedigri_diabetes">Función de Pedigrí Genético</label>
-              <span class="campo-rango">Índice familiar: 0.05 – 2.50</span>
+              <div class="campo-label-con-info">
+                <label class="campo-label" for="pedigri_diabetes">Función de Pedigrí Genético</label>
+                <button type="button" class="btn-info-tooltip" data-campo="pedigri_diabetes" aria-label="Información de pedigrí">ⓘ</button>
+              </div>
+              <span class="campo-rango-badge">Índice: 0.05 – 2.50</span>
+            </div>
+            <div class="caja-explicacion" id="exp-pedigri_diabetes">
+              💡 Puntuación que cuantifica la predisposición genética según la cercanía de familiares diagnosticados con diabetes (0.05 a 2.50).
             </div>
             <div class="campo-input-caja">
               <input class="campo-input" type="number" step="0.01" min="0.05" max="2.50" maxlength="5"
-                     id="pedigri_diabetes" name="pedigri_diabetes" placeholder="Ej. 0.35 (0.05-2.50)" required>
+                     id="pedigri_diabetes" name="pedigri_diabetes" placeholder="Ej. 0.35 (0.05 a 2.50)" required>
               <span class="campo-unidad">índice</span>
+            </div>
+            <div class="mini-rango-track">
+              <div class="mini-rango-zona-saludable" style="left: 1%; width: 18%;"></div>
+              <div class="mini-rango-marcador" id="marcador-pedigri_diabetes" style="left: 0%;"></div>
             </div>
             <span class="error-msg-campo" id="err-pedigri_diabetes"></span>
           </div>
         </div>
 
-        <!-- BOTÓN DE ENVÍO TÁCTIL -->
-        <button id="btn-analizar" type="submit" class="btn-analizar-movil">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
-          <span>Analizar Paciente en Servidor</span>
-        </button>
+        <!-- PILAR UX: BOTÓN DE ACCIÓN EN LA ZONA DEL PULGAR -->
+        <div class="barra-accion-flotante">
+          <button id="btn-analizar" type="submit" class="btn-analizar-movil">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+            <span>Evaluar Paciente en Servidor</span>
+          </button>
+        </div>
 
       </form>
     </div>
 
-    <!-- NAVEGACIÓN INFERIOR DE CELULAR -->
+    <!-- NAVEGACIÓN INFERIOR (BOTTOM NAV) -->
     <nav class="barra-navegacion-inferior" aria-label="Navegación principal">
       <button type="button" class="nav-item activo" data-tab="inicio">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
@@ -699,6 +354,17 @@
         <span>Acerca de</span>
       </button>
     </nav>
+
+    <!-- MODAL NATIVO ESTILO BOTTOM SHEET -->
+    <div id="modal-sheet" class="modal-overlay" role="dialog" aria-modal="true">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h2 id="modal-titulo">Información</h2>
+          <button type="button" id="btn-cerrar-modal" class="btn-cerrar-modal" aria-label="Cerrar modal">✕</button>
+        </div>
+        <div id="modal-cuerpo"></div>
+      </div>
+    </div>
 
   </main>
 

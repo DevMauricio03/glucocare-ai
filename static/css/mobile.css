@@ -1,23 +1,43 @@
-:root {
-  --color-primario: #0284c7;
-  --color-primario-oscuro: #0369a1;
-  --color-fondo-app: #f1f5f9;
-  --color-tarjeta: #ffffff;
-  --color-texto-1: #0f172a;
-  --color-texto-2: #475569;
-  --color-texto-3: #94a3b8;
-  --color-borde: #e2e8f0;
-  
-  --verde-exito: #16a34a;
-  --verde-fondo: #dcfce7;
-  --ambar-alerta: #d97706;
-  --ambar-fondo: #fef3c7;
-  --rojo-peligro: #dc2626;
-  --rojo-fondo: #fee2e2;
+/* ==========================================================================
+   GlucoCare AI - Mobile Clinical Design System
+   Basado en los Pilares de Experiencia de Usuario (UX) y Ergonomía Táctil
+   ========================================================================== */
 
-  --radio-md: 14px;
-  --radio-lg: 20px;
-  --sombra-card: 0 4px 16px -2px rgba(15, 23, 42, 0.06), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
+:root {
+  --azul-medico: #0284c7;
+  --azul-gradiente: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  --azul-suave: #f0f9ff;
+  --azul-borde: #bae6fd;
+  
+  --fondo-app: #f8fafc;
+  --fondo-tarjeta: #ffffff;
+  --borde-suave: #e2e8f0;
+  --borde-activo: #38bdf8;
+  
+  --texto-principal: #0f172a;
+  --texto-secundario: #475569;
+  --texto-terciario: #94a3b8;
+  
+  --verde-salud: #10b981;
+  --verde-fondo: #ecfdf5;
+  --verde-borde: #a7f3d0;
+  
+  --ambar-alerta: #f59e0b;
+  --ambar-fondo: #fffbeb;
+  --ambar-borde: #fde68a;
+  
+  --rojo-riesgo: #ef4444;
+  --rojo-fondo: #fef2f2;
+  --rojo-borde: #fecaca;
+
+  --radio-sm: 10px;
+  --radio-md: 16px;
+  --radio-lg: 24px;
+  --radio-pildora: 999px;
+  
+  --sombra-flotante: 0 10px 25px -5px rgba(2, 132, 199, 0.25), 0 8px 10px -6px rgba(2, 132, 199, 0.2);
+  --sombra-card: 0 2px 12px -2px rgba(15, 23, 42, 0.05), 0 1px 4px -1px rgba(15, 23, 42, 0.02);
+  --sombra-hover: 0 8px 20px -4px rgba(15, 23, 42, 0.08), 0 2px 6px -2px rgba(15, 23, 42, 0.04);
 }
 
 * {
@@ -28,24 +48,25 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  background-color: #0b1329;
-  color: var(--color-texto-1);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: #070f26;
+  color: var(--texto-principal);
   min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
   padding: 16px 0;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* MARCO SIMULADOR DE CELULAR (Centrado en escritorio, pantalla completa en movil) */
+/* MARCO DEL SMARTPHONE */
 .dispositivo-movil {
   width: 100%;
   max-width: 440px;
-  min-height: 900px;
-  background: var(--color-fondo-app);
-  border-radius: 44px;
-  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.6), 0 0 0 10px #1e293b;
+  min-height: 920px;
+  background: var(--fondo-app);
+  border-radius: 46px;
+  box-shadow: 0 30px 80px -15px rgba(0, 0, 0, 0.75), 0 0 0 12px #1e293b;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -55,7 +76,7 @@ body {
 @media (max-width: 480px) {
   body {
     padding: 0;
-    background-color: var(--color-fondo-app);
+    background-color: var(--fondo-app);
   }
   .dispositivo-movil {
     max-width: 100%;
@@ -65,10 +86,10 @@ body {
   }
 }
 
-/* BARRA DE ESTADO TIPO SMARTPHONE */
+/* BARRA DE ESTADO SUPERIOR */
 .barra-estado-movil {
   height: 44px;
-  padding: 0 24px;
+  padding: 0 26px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -83,14 +104,15 @@ body {
   gap: 6px;
 }
 
-/* CABECERA DE LA APP CLINICA */
+/* CABECERA PRINCIPAL */
 .cabecera-app {
-  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  background: var(--azul-gradiente);
   color: #fff;
-  padding: 16px 20px 24px;
+  padding: 18px 20px 24px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  position: relative;
 }
 .perfil-app {
   display: flex;
@@ -98,33 +120,37 @@ body {
   gap: 12px;
 }
 .app-avatar {
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   background: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(8px);
-  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  border-radius: 14px;
   display: grid;
   place-items: center;
   color: #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 .app-titulos h1 {
-  font-size: 18px;
+  font-size: 19px;
   font-weight: 700;
   letter-spacing: -0.02em;
 }
 .app-titulos p {
   font-size: 12px;
   color: #e0f2fe;
+  font-weight: 500;
 }
 .indicador-conexion {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 10px;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.16);
+  padding: 6px 12px;
+  border-radius: var(--radio-pildora);
+  background: rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(8px);
   font-size: 11px;
   font-weight: 600;
+  letter-spacing: 0.02em;
 }
 .punto-verde {
   width: 8px;
@@ -134,109 +160,136 @@ body {
   box-shadow: 0 0 8px #4ade80;
 }
 
-/* CONTENIDO CON SCROLL EN EL CELULAR */
+/* CONTENEDOR CON SCROLL SUAVE */
 .contenido-scroll {
   flex: 1;
-  padding: 18px 16px 90px;
+  padding: 18px 16px 100px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 18px;
 }
 
-/* SELECCION RAPIDA DE PACIENTE (CHIPS HORIZONTALES) */
+/* PILAR UX: ACCESO RÁPIDO Y CARGA COGNITIVA MÍNIMA (CHIPS DE PACIENTE) */
 .modulo-chips {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
+}
+.etiqueta-fila-chips {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 .etiqueta-seccion {
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--color-texto-2);
+  color: var(--texto-secundario);
   font-weight: 700;
+}
+.btn-limpiar-texto {
+  background: none;
+  border: none;
+  color: var(--azul-medico);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 2px 6px;
+}
+.btn-limpiar-texto:hover {
+  text-decoration: underline;
 }
 .lista-chips {
   display: flex;
   gap: 8px;
   overflow-x: auto;
   padding-bottom: 4px;
+  scrollbar-width: none;
+}
+.lista-chips::-webkit-scrollbar {
+  display: none;
 }
 .chip-btn {
-  background: var(--color-tarjeta);
-  border: 1px solid var(--color-borde);
-  border-radius: 20px;
-  padding: 8px 14px;
-  font-size: 12px;
+  background: var(--fondo-tarjeta);
+  border: 1.5px solid var(--borde-suave);
+  border-radius: var(--radio-pildora);
+  padding: 10px 16px;
+  font-size: 13px;
   font-weight: 600;
-  color: var(--color-texto-2);
+  color: var(--texto-secundario);
   white-space: nowrap;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   box-shadow: 0 1px 3px rgba(0,0,0,0.03);
 }
-.chip-btn:hover, .chip-btn:active {
-  background: #f8fafc;
-  border-color: var(--color-primario);
-  color: var(--color-primario);
-  transform: translateY(-1px);
+.chip-btn:active {
+  transform: scale(0.96);
+}
+.chip-btn.activo, .chip-btn:hover {
+  border-color: var(--azul-medico);
+  background: var(--azul-suave);
+  color: var(--azul-medico);
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.15);
 }
 
-/* TARJETA DE RESULTADO / DIAGNOSTICO EN VIVO */
+/* PILAR UX: REPORTE CLÍNICO HERO CON MEDIDOR VISUAL */
 .tarjeta-diagnostico {
-  background: var(--color-tarjeta);
+  background: var(--fondo-tarjeta);
   border-radius: var(--radio-lg);
-  padding: 20px;
+  padding: 22px 20px;
   box-shadow: var(--sombra-card);
-  border: 1px solid var(--color-borde);
+  border: 1.5px solid var(--borde-suave);
   position: relative;
   overflow: hidden;
-  transition: all 0.3s ease;
+  transition: all 0.35s ease;
 }
 .tarjeta-diagnostico::before {
   content: "";
   position: absolute;
   top: 0; left: 0; right: 0;
-  height: 4px;
-  background: var(--color-primario);
+  height: 5px;
+  background: var(--azul-medico);
+  transition: background 0.3s ease;
 }
-.tarjeta-diagnostico.estado-verde::before { background: var(--verde-exito); }
+.tarjeta-diagnostico.estado-verde::before { background: var(--verde-salud); }
 .tarjeta-diagnostico.estado-ambar::before { background: var(--ambar-alerta); }
-.tarjeta-diagnostico.estado-rojo::before { background: var(--rojo-peligro); }
+.tarjeta-diagnostico.estado-rojo::before { background: var(--rojo-riesgo); }
 
 .diag-cabecera {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 .badge-alerta {
-  padding: 5px 12px;
-  border-radius: 20px;
+  padding: 6px 14px;
+  border-radius: var(--radio-pildora);
   font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
-.badge-alerta.verde { background: var(--verde-fondo); color: var(--verde-exito); }
-.badge-alerta.ambar { background: var(--ambar-alerta); color: #fff; }
-.badge-alerta.rojo { background: var(--rojo-fondo); color: var(--rojo-peligro); }
-.badge-alerta.espera { background: #e2e8f0; color: var(--color-texto-2); }
+.badge-alerta.verde { background: var(--verde-fondo); color: var(--verde-salud); border: 1px solid var(--verde-borde); }
+.badge-alerta.ambar { background: var(--ambar-fondo); color: var(--ambar-alerta); border: 1px solid var(--ambar-borde); }
+.badge-alerta.rojo { background: var(--rojo-fondo); color: var(--rojo-riesgo); border: 1px solid var(--rojo-borde); }
+.badge-alerta.espera { background: #f1f5f9; color: var(--texto-secundario); border: 1px solid var(--borde-suave); }
 
-/* GAUGE CIRCULAR DE RIESGO */
 .medidor-fila {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 18px;
   margin: 10px 0;
 }
 .medidor-svg-wrapper {
-  width: 90px;
-  height: 90px;
+  width: 96px;
+  height: 96px;
   flex-shrink: 0;
   position: relative;
   display: grid;
@@ -250,95 +303,217 @@ body {
 .medidor-fondo {
   fill: none;
   stroke: #e2e8f0;
-  stroke-width: 8;
+  stroke-width: 9;
 }
 .medidor-progreso {
   fill: none;
-  stroke: var(--color-primario);
-  stroke-width: 8;
+  stroke: var(--azul-medico);
+  stroke-width: 9;
   stroke-linecap: round;
   stroke-dasharray: 226;
   stroke-dashoffset: 226;
-  transition: stroke-dashoffset 0.8s ease, stroke 0.4s ease;
+  transition: stroke-dashoffset 0.9s cubic-bezier(0.16, 1, 0.3, 1), stroke 0.4s ease;
 }
 .medidor-texto-centro {
   position: absolute;
-  font-size: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.cifra-porcentaje {
+  font-size: 22px;
   font-weight: 800;
-  color: var(--color-texto-1);
+  line-height: 1;
+  color: var(--texto-principal);
+}
+.cifra-label {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--texto-terciario);
+  margin-top: 2px;
 }
 
+.diag-detalles {
+  flex: 1;
+}
 .diag-detalles h3 {
   font-size: 16px;
   font-weight: 700;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
+  line-height: 1.3;
+  color: var(--texto-principal);
 }
 .diag-detalles p {
   font-size: 13px;
-  color: var(--color-texto-2);
-  line-height: 1.4;
+  color: var(--texto-secundario);
+  line-height: 1.5;
 }
 
+/* LISTA DE FACTORES DE RIESGO IDENTIFICADOS */
 .factores-lista {
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px dashed var(--color-borde);
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--borde-suave);
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
+}
+.factor-titulo-fila {
+  font-size: 11px;
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--texto-secundario);
 }
 .factor-item {
   font-size: 12px;
-  color: #b91c1c;
+  color: #991b1b;
+  background: #fef2f2;
+  border: 1px solid #fee2e2;
+  border-radius: var(--radio-sm);
+  padding: 8px 12px;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  font-weight: 500;
 }
 
-/* TARJETAS DEL FORMULARIO */
+/* BANNER DE ALERTA DEFENSIVA */
+#banner-alerta-global {
+  background: var(--rojo-fondo);
+  border: 1px solid var(--rojo-borde);
+  border-left: 4px solid var(--rojo-riesgo);
+  color: #991b1b;
+  padding: 12px 14px;
+  border-radius: var(--radio-sm);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+  display: none;
+  animation: sacudida 0.3s ease-in-out;
+}
+@keyframes sacudida {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+/* PILAR UX: SEGMENTED CONTROL / TABS PARA REDUCIR FATIGA COGNITIVA */
+.control-pasos {
+  display: flex;
+  background: #e2e8f0;
+  padding: 4px;
+  border-radius: var(--radio-md);
+  gap: 4px;
+}
+.paso-tab {
+  flex: 1;
+  padding: 9px 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--texto-secundario);
+  background: none;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.paso-tab.activo {
+  background: var(--fondo-tarjeta);
+  color: var(--azul-medico);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+/* TARJETAS DEL FORMULARIO CLINICO */
 .card-grupo {
-  background: var(--color-tarjeta);
+  background: var(--fondo-tarjeta);
   border-radius: var(--radio-lg);
-  padding: 16px 18px;
+  padding: 20px 18px;
   box-shadow: var(--sombra-card);
-  border: 1px solid var(--color-borde);
+  border: 1.5px solid var(--borde-suave);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card-grupo-cabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--borde-suave);
 }
 .card-grupo-titulo {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
-  color: var(--color-texto-1);
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--color-borde);
+  color: var(--texto-principal);
 }
 .card-grupo-titulo svg {
-  color: var(--color-primario);
+  color: var(--azul-medico);
+}
+.badge-paso {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--azul-medico);
+  background: var(--azul-suave);
+  padding: 4px 10px;
+  border-radius: var(--radio-pildora);
 }
 
+/* CAMPOS INDIVIDUALES CON ERGONOMÍA TÁCTIL */
 .campo-movil {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 .campo-fila-top {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
+.campo-label-con-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
 .campo-label {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
-  color: var(--color-texto-1);
+  color: var(--texto-principal);
 }
-.campo-rango {
+.btn-info-tooltip {
+  background: none;
+  border: none;
+  color: var(--texto-terciario);
+  cursor: pointer;
+  display: inline-flex;
+  padding: 2px;
+  border-radius: 50%;
+  transition: color 0.15s;
+}
+.btn-info-tooltip:hover {
+  color: var(--azul-medico);
+}
+.campo-rango-badge {
   font-size: 11px;
-  color: var(--color-texto-3);
+  font-weight: 600;
+  color: var(--texto-secundario);
+  background: #f1f5f9;
+  padding: 2px 8px;
+  border-radius: 6px;
 }
+
+/* CAJA DE ENTRADA Y BOTONES STEPPER +/- PARA EL PULGAR */
 .campo-input-caja {
   position: relative;
   display: flex;
@@ -346,69 +521,142 @@ body {
 }
 .campo-input {
   width: 100%;
-  height: 48px;
+  height: 50px;
   border-radius: var(--radio-md);
-  border: 1.5px solid var(--color-borde);
+  border: 1.5px solid var(--borde-suave);
   background: #f8fafc;
-  padding: 0 48px 0 14px;
-  font-size: 16px;
-  font-weight: 500;
-  color: var(--color-texto-1);
+  padding: 0 54px 0 16px;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--texto-principal);
   transition: all 0.2s ease;
 }
 .campo-input:focus {
   background: #fff;
-  border-color: var(--color-primario);
-  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+  border-color: var(--azul-medico);
+  box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.16);
   outline: none;
+}
+.campo-input.input-error {
+  border-color: var(--rojo-riesgo) !important;
+  background-color: var(--rojo-fondo) !important;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.16) !important;
 }
 .campo-unidad {
   position: absolute;
   right: 14px;
   font-size: 12px;
-  font-weight: 600;
-  color: var(--color-texto-3);
+  font-weight: 700;
+  color: var(--texto-terciario);
   pointer-events: none;
 }
 
-/* BOTON DE ACCION TACTIL */
+/* PILAR UX: MINI BARRA DE RANGO VISUAL DE SALUD */
+.mini-rango-track {
+  height: 4px;
+  background: #e2e8f0;
+  border-radius: var(--radio-pildora);
+  position: relative;
+  margin-top: 2px;
+  overflow: hidden;
+}
+.mini-rango-zona-saludable {
+  position: absolute;
+  top: 0; bottom: 0;
+  background: #a7f3d0;
+  border-radius: var(--radio-pildora);
+}
+.mini-rango-marcador {
+  position: absolute;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--azul-medico);
+  transform: translate(-50%, -50%);
+  transition: left 0.3s ease;
+  box-shadow: 0 0 4px rgba(2, 132, 199, 0.5);
+}
+
+.error-msg-campo {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--rojo-riesgo);
+  min-height: 14px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* EXPLICACIÓN CONTEXTUAL EXPANDIBLE */
+.caja-explicacion {
+  font-size: 12px;
+  color: var(--texto-secundario);
+  background: var(--azul-suave);
+  border: 1px solid var(--azul-borde);
+  padding: 8px 12px;
+  border-radius: var(--radio-sm);
+  display: none;
+  line-height: 1.4;
+}
+
+/* PILAR UX: BOTON DE ACCIÓN PRINCIPAL EN LA ZONA DEL PULGAR */
+.barra-accion-flotante {
+  margin-top: 6px;
+}
 .btn-analizar-movil {
   width: 100%;
-  height: 52px;
-  border-radius: 30px;
-  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  height: 56px;
+  border-radius: var(--radio-pildora);
+  background: var(--azul-gradiente);
   color: #fff;
   border: none;
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 700;
+  letter-spacing: -0.01em;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  box-shadow: 0 6px 18px rgba(2, 132, 199, 0.35);
+  box-shadow: var(--sombra-flotante);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.btn-analizar-movil:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px -4px rgba(2, 132, 199, 0.35);
 }
 .btn-analizar-movil:active {
-  transform: scale(0.98);
+  transform: scale(0.97);
 }
 .btn-analizar-movil:disabled {
-  opacity: 0.7;
+  opacity: 0.75;
   cursor: not-allowed;
+  transform: none;
 }
 
-/* BARRA DE NAVEGACION INFERIOR TIPO APP NATIVA */
+/* ANIMACIÓN GIRATORIA */
+.anim-girar {
+  animation: rotar 1s linear infinite;
+}
+@keyframes rotar {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* BARRA DE NAVEGACIÓN INFERIOR (BOTTOM NAV) */
 .barra-navegacion-inferior {
   position: absolute;
   bottom: 0; left: 0; right: 0;
-  height: 64px;
-  background: #ffffff;
-  border-top: 1px solid var(--color-borde);
+  height: 66px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--borde-suave);
   display: flex;
   justify-content: space-around;
   align-items: center;
   padding: 0 8px;
-  z-index: 10;
+  z-index: 20;
 }
 .nav-item {
   display: flex;
@@ -417,12 +665,67 @@ body {
   gap: 4px;
   font-size: 11px;
   font-weight: 600;
-  color: var(--color-texto-3);
+  color: var(--texto-terciario);
   background: none;
   border: none;
   cursor: pointer;
-  padding: 6px 12px;
+  padding: 8px 16px;
+  border-radius: var(--radio-sm);
+  transition: all 0.2s ease;
 }
 .nav-item.activo {
-  color: var(--color-primario);
+  color: var(--azul-medico);
+}
+.nav-item.activo svg {
+  transform: translateY(-2px);
+}
+
+/* MODAL DE INFORMACIÓN / ACERCA DE */
+.modal-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 50;
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+  animation: fadeIn 0.2s ease;
+}
+.modal-card {
+  width: 100%;
+  background: #fff;
+  border-radius: 28px 28px 0 0;
+  padding: 24px 20px 36px;
+  max-height: 80%;
+  overflow-y: auto;
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.modal-header h2 {
+  font-size: 18px;
+  font-weight: 700;
+}
+.btn-cerrar-modal {
+  background: #f1f5f9;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 16px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  color: var(--texto-secundario);
 }
