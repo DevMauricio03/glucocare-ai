@@ -254,7 +254,15 @@ def evaluar_factores_riesgo(datos):
 # ==============================================================
 
 
-@app.route("/api/predecir", methods=["POST"])
+@app.after_request
+def configurar_cabeceras_cors(response):
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization, Bypass-Tunnel-Reminder, ngrok-skip-browser-warning"
+    return response
+
+
+@app.route("/api/predecir", methods=["POST", "OPTIONS"])
 def api_predecir():
     """Recibe la peticion JSON del cliente y devuelve el diagnostico asistido por ML."""
     datos_cliente = request.get_json(silent=True)
@@ -293,6 +301,17 @@ def api_predecir():
 
         factores = evaluar_factores_riesgo(fila)
 
+        # Registro en vivo en la terminal para demostración académica
+        print("\n" + "=" * 68)
+        print("⚡ [SERVIDOR PYTHON FLASK] PETICIÓN HTTP RECIBIDA EN TIEMPO REAL")
+        print(f" --> Cliente / Origen: {request.headers.get('Origin', 'Remoto / Móvil')}")
+        print(f" --> IP del Solicitante: {request.remote_addr}")
+        print(f" --> Biomarcadores: Glucosa={fila['glucosa']} mg/dL, Presión={fila['presion_arterial']} mmHg, IMC={fila['imc']} kg/m², Embarazos={fila['embarazos']}")
+        print(f" --> Inferencia Random Forest: Probabilidad={round(prob_diabetes, 1)}% | Riesgo={nivel_riesgo.upper()}")
+        print(f" --> Dictamen Clínico: {diagnostico}")
+        print(" --> Código emitido: HTTP 200 OK (JSON)")
+        print("=" * 68 + "\n")
+
         respuesta = {
             "exito": True,
             "prediccion": prediccion,
@@ -305,6 +324,12 @@ def api_predecir():
             "recomendacion": recomendacion,
             "factores_identificados": factores,
             "parametros_analizados": fila,
+            "servidor_info": {
+                "motor": "Python 3 + Flask + Scikit-Learn",
+                "modelo": "RandomForestClassifier (120 árboles)",
+                "base_datos": "MongoDB (diabetes_db)",
+                "protocolo": "HTTP REST / JSON",
+            }
         }
         return jsonify(respuesta), 200
 

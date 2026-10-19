@@ -18,11 +18,37 @@ document.addEventListener("DOMContentLoaded", () => {
   const modalCuerpo = document.getElementById("modal-cuerpo");
   const btnCerrarModal = document.getElementById("btn-cerrar-modal");
 
-  // Detección de entorno (Local Server vs GitHub Pages)
+  // Detección de entorno y Enlace con el Servidor Backend Remoto (Túnel Ngrok / Red Local)
+  const TUNEL_PUBLICO_DEFECTO = "https://hiram-unconnived-dovie.ngrok-free.dev";
   const esGitHubPages = window.location.hostname.includes("github.io") || window.location.protocol === "file:";
-  if (etiquetaConexion) {
-    etiquetaConexion.textContent = esGitHubPages ? "Edge AI" : "Online";
+
+  let backendUrl = localStorage.getItem("glucocare_backend_url");
+  if (backendUrl === null) {
+    backendUrl = esGitHubPages ? TUNEL_PUBLICO_DEFECTO : "";
+    localStorage.setItem("glucocare_backend_url", backendUrl);
   }
+
+  let ultimaTransaccion = null;
+
+  function actualizarBadgeConexion(estado = "conectado", latenciaMs = null) {
+    if (!etiquetaConexion) return;
+    const punto = document.querySelector(".indicador-conexion .punto-verde");
+    if (estado === "conectado") {
+      const latTexto = latenciaMs ? ` (${latenciaMs}ms)` : "";
+      etiquetaConexion.textContent = (backendUrl && backendUrl.includes("ngrok")) ? `Python Remoto${latTexto}` : `Python Activo${latTexto}`;
+      if (punto) {
+        punto.style.background = "#10b981";
+        punto.style.boxShadow = "0 0 8px #10b981";
+      }
+    } else {
+      etiquetaConexion.textContent = "Offline (Local)";
+      if (punto) {
+        punto.style.background = "#f59e0b";
+        punto.style.boxShadow = "none";
+      }
+    }
+  }
+  actualizarBadgeConexion("conectado");
 
   // Elementos del Wizard Stepper guiado
   const btnPasoAnterior = document.getElementById("btn-paso-anterior");
@@ -762,26 +788,44 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const delayPromesa = new Promise(resolve => setTimeout(resolve, 650));
     let resultado = null;
+    let latenciaMs = null;
+    const endpointDestino = (backendUrl ? backendUrl.replace(/\/$/, "") : "") + "/api/predecir";
 
-    if (!esGitHubPages) {
-      try {
-        const respuesta = await fetch("/api/predecir", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
-        const data = await respuesta.json();
-        if (respuesta.ok && data.exito) {
-          resultado = data;
-        } else {
-          if (bannerAlertaGlobal) {
-            bannerAlertaGlobal.textContent = "Alerta del Servidor: " + (data.error || "Datos no procesables");
-            bannerAlertaGlobal.style.display = "block";
-          }
+    try {
+      const t0 = performance.now();
+      const respuesta = await fetch(endpointDestino, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "ngrok-skip-browser-warning": "true",
+          "Bypass-Tunnel-Reminder": "true"
+        },
+        body: JSON.stringify(payload)
+      });
+      const t1 = performance.now();
+      latenciaMs = Math.round(t1 - t0);
+
+      const data = await respuesta.json();
+      if (respuesta.ok && data.exito) {
+        resultado = data;
+        actualizarBadgeConexion("conectado", latenciaMs);
+        ultimaTransaccion = {
+          hora: new Date().toLocaleTimeString(),
+          endpoint: endpointDestino,
+          latenciaMs: latenciaMs,
+          status: respuesta.status,
+          payload: payload,
+          respuesta: data
+        };
+      } else {
+        if (bannerAlertaGlobal) {
+          bannerAlertaGlobal.textContent = "Alerta del Servidor: " + (data.error || "Datos no procesables");
+          bannerAlertaGlobal.style.display = "block";
         }
-      } catch (err) {
-        console.warn("Backend no disponible, recurriendo a motor local:", err);
       }
+    } catch (err) {
+      console.warn("Backend Python remoto no disponible, usando motor de respaldo:", err);
+      actualizarBadgeConexion("desconectado");
     }
 
     if (!resultado && typeof predecirDiabetesEnNavegador === "function") {
@@ -1196,85 +1240,138 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Indicador de conexión clickable
-  const indicadorConexion = document.querySelector(".indicador-conexion");
-  if (indicadorConexion) {
-    indicadorConexion.style.cursor = "pointer";
-    indicadorConexion.addEventListener("click", () => {
+  const btnTelemetria = document.getElementById("btn-telemetria-servidor");
+  if (btnTelemetria) {
+    btnTelemetria.addEventListener("click", () => {
       reproducirBeep(480, 0.05, "sine");
       cargarEstadisticasModal();
     });
   }
 
   async function cargarEstadisticasModal() {
-    let contenido = "";
-    if (!esGitHubPages) {
-      try {
-        const res = await fetch("/api/estadisticas");
-        if (res.ok) {
-          const d = await res.json();
-          contenido = `
-            <div style="background:#ecfdf5; border:1px solid #a7f3d0; border-radius:12px; padding:12px; margin-bottom:12px;">
-              <div style="display:flex; align-items:center; gap:8px;">
-                <span style="font-size:16px;">🟢</span>
-                <strong style="color:#065f46; font-size:13px;">Servidor Python Activo (Flask + MongoDB)</strong>
-              </div>
-              <p style="font-size:12px; color:#047857; margin:4px 0 0;">
-                Conectado en tiempo real al backend <code style="background:white; padding:1px 5px; border-radius:4px;">servidor.py</code>. Las predicciones se resuelven en Python con Scikit-Learn.
-              </p>
-            </div>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-              <div style="background:#f0f9ff; padding:14px; border-radius:14px; text-align:center;">
-                <div style="font-size:24px; font-weight:800; color:#0284c7;">${d.total_registros}</div>
-                <div style="font-size:11px; text-transform:uppercase; color:#64748b; font-weight:700;">Pacientes en Base</div>
-              </div>
-              <div style="background:#fef2f2; padding:14px; border-radius:14px; text-align:center;">
-                <div style="font-size:24px; font-weight:800; color:#dc2626;">${d.prevalencia}%</div>
-                <div style="font-size:11px; text-transform:uppercase; color:#64748b; font-weight:700;">Prevalencia</div>
-              </div>
-            </div>
-            <div style="margin-top:12px; font-size:12px; color:#475569; line-height:1.6; background:#f8fafc; padding:12px; border-radius:10px; border:1px solid #e2e8f0;">
-              • Base de datos: <strong>${d.base_datos}.${d.coleccion}</strong><br>
-              • Casos Diabéticos (Clase 1): <strong>${d.casos_diabeticos}</strong><br>
-              • Casos Sanos / Control (Clase 0): <strong>${d.casos_no_diabeticos}</strong><br>
-              • Endpoint REST: <strong>POST /api/predecir</strong>
-            </div>
-          `;
-          abrirModal("Telemetría: Servidor Python & Base de Datos", contenido);
-          return;
+    let statsData = null;
+    let latenciaPrueba = null;
+    let urlActual = backendUrl || (window.location.origin);
+    const endpointEstadisticas = (backendUrl ? backendUrl.replace(/\/$/, "") : "") + "/api/estadisticas";
+
+    try {
+      const t0 = performance.now();
+      const res = await fetch(endpointEstadisticas, {
+        headers: {
+          "ngrok-skip-browser-warning": "true",
+          "Bypass-Tunnel-Reminder": "true"
         }
-      } catch (e) {}
+      });
+      const t1 = performance.now();
+      if (res.ok) {
+        statsData = await res.json();
+        latenciaPrueba = Math.round(t1 - t0);
+        actualizarBadgeConexion("conectado", latenciaPrueba);
+      }
+    } catch (e) {
+      console.warn("Error consultando telemetría de estadísticas:", e);
     }
 
-    // Modal para entorno GitHub Pages (Edge AI)
-    contenido = `
-      <div style="background:#f0f9ff; border:1px solid #bae6fd; border-radius:12px; padding:12px; margin-bottom:12px;">
-        <div style="display:flex; align-items:center; gap:8px;">
-          <span style="font-size:16px;">🌐</span>
-          <strong style="color:#0369a1; font-size:13px;">Modo Producción: GitHub Pages (Edge AI)</strong>
-        </div>
-        <p style="font-size:12px; color:#0284c7; margin:4px 0 0; line-height:1.4;">
-          GitHub Pages es un hosting estático (no ejecuta servidores de Python). Por ello, el modelo <strong>Random Forest entrenado en Python</strong> se ejecuta directamente en el navegador del dispositivo (Edge Computing).
-        </p>
-      </div>
+    const estadoPuntoColor = statsData ? "#10b981" : "#f59e0b";
+    const estadoTexto = statsData ? `En Línea · ${latenciaPrueba}ms` : "Modo Local (Offline)";
+    const esTunel = urlActual.includes("ngrok");
 
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-        <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:14px; border-radius:14px; text-align:center;">
-          <div style="font-size:24px; font-weight:800; color:#0284c7;">768</div>
-          <div style="font-size:11px; text-transform:uppercase; color:#64748b; font-weight:700;">Historias Clínicas</div>
+    let transaccionHtml = "";
+    if (ultimaTransaccion) {
+      transaccionHtml = `
+        <div style="background:#0f172a; color:#e2e8f0; padding:12px; border-radius:12px; margin-top:12px; font-family:monospace; font-size:11px; overflow-x:auto;">
+          <div style="display:flex; justify-content:space-between; margin-bottom:6px; color:#38bdf8; font-weight:700;">
+            <span>ÚLTIMA PETICIÓN (HTTP POST ${ultimaTransaccion.status})</span>
+            <span>${ultimaTransaccion.latenciaMs} ms · ${ultimaTransaccion.hora}</span>
+          </div>
+          <div style="color:#94a3b8; margin-bottom:4px;">→ Destino: ${ultimaTransaccion.endpoint}</div>
+          <div style="margin-top:6px; color:#cbd5e1;"><strong>Payload Enviado:</strong></div>
+          <pre style="margin:2px 0 6px 0; color:#a5f3fc; white-space:pre-wrap;">${JSON.stringify(ultimaTransaccion.payload, null, 2)}</pre>
+          <div style="margin-top:6px; color:#cbd5e1;"><strong>Respuesta Python:</strong></div>
+          <pre style="margin:2px 0 0 0; color:#86efac; white-space:pre-wrap;">${JSON.stringify({
+            diagnostico: ultimaTransaccion.respuesta.diagnostico,
+            probabilidad: ultimaTransaccion.respuesta.probabilidad_diabetes + "%",
+            nivel: ultimaTransaccion.respuesta.nivel_riesgo,
+            fuente: ultimaTransaccion.respuesta.fuente || "Python Flask / Mongo"
+          }, null, 2)}</pre>
         </div>
-        <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:14px; border-radius:14px; text-align:center;">
-          <div style="font-size:24px; font-weight:800; color:#dc2626;">34.9%</div>
-          <div style="font-size:11px; text-transform:uppercase; color:#64748b; font-weight:700;">Prevalencia Base</div>
+      `;
+    } else {
+      transaccionHtml = `
+        <div style="background:#f8fafc; border:1px dashed #cbd5e1; padding:12px; border-radius:12px; margin-top:12px; text-align:center; font-size:12px; color:#64748b;">
+          No hay transacciones recientes en esta sesión. Evalúa un paciente para ver el intercambio de datos HTTP en vivo.
         </div>
-      </div>
+      `;
+    }
 
-      <div style="margin-top:12px; font-size:12px; color:#475569; line-height:1.6; background:#f8fafc; padding:12px; border-radius:10px; border:1px solid #e2e8f0;">
-        <strong>Arquitectura Híbrida del Proyecto:</strong><br>
-        1. <strong>En GitHub (Portátil en tu Celular)</strong>: Inferencia local sin depender de tener tu computadora encendida.<br>
-        2. <strong>En Red Local (Servidor Python)</strong>: Ejecutas <code style="background:#e2e8f0; padding:2px 4px; border-radius:4px;">python servidor.py</code> para conectar Flask y MongoDB en tiempo real.
+    const modalHtml = `
+      <div style="display:flex; flex-direction:column; gap:12px;">
+        
+        <!-- Estado de Conexión del Túnel -->
+        <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:14px; border-radius:14px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:${estadoPuntoColor}; box-shadow:0 0 8px ${estadoPuntoColor};"></span>
+                <strong style="font-size:14px; color:#0f172a;">${esTunel ? "Túnel HTTPS Ngrok" : "Servidor Backend"}</strong>
+              </div>
+              <small style="color:#64748b; font-size:11px;">${estadoTexto}</small>
+            </div>
+            <button id="btn-probar-ping" type="button" style="background:#0ea5e9; color:white; border:none; padding:6px 12px; border-radius:8px; font-size:11px; font-weight:700; cursor:pointer;">
+              Probar Ping
+            </button>
+          </div>
+
+          <div style="margin-top:10px; font-size:12px; color:#334155; word-break:break-all; background:white; padding:8px 10px; border-radius:8px; border:1px solid #cbd5e1;">
+            <span style="color:#64748b; font-size:10px; font-weight:700; display:block;">URL DEL BACKEND ACTIVO:</span>
+            <code>${urlActual || "(Mismo origen / Localhost)"}</code>
+          </div>
+        </div>
+
+        <!-- Estadísticas de MongoDB -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+          <div style="background:#f0f9ff; border:1px solid #bae6fd; padding:12px; border-radius:12px; text-align:center;">
+            <div style="font-size:22px; font-weight:800; color:#0284c7;">${statsData ? statsData.total_registros : "768"}</div>
+            <div style="font-size:10px; text-transform:uppercase; color:#0369a1; font-weight:700;">Pacientes en MongoDB</div>
+          </div>
+          <div style="background:#fef2f2; border:1px solid #fecaca; padding:12px; border-radius:12px; text-align:center;">
+            <div style="font-size:22px; font-weight:800; color:#dc2626;">${statsData ? statsData.prevalencia + "%" : "34.9%"}</div>
+            <div style="font-size:10px; text-transform:uppercase; color:#b91c1c; font-weight:700;">Prevalencia en Dataset</div>
+          </div>
+        </div>
+
+        ${statsData ? `
+          <div style="font-size:12px; color:#475569; background:#ffffff; border:1px solid #e2e8f0; padding:10px; border-radius:10px; line-height:1.5;">
+            <div>• Base de Datos: <strong>${statsData.base_datos || "diabetes_db"}</strong> (Colección: <code>${statsData.coleccion || "pacientes"}</code>)</div>
+            <div>• Casos con Diabetes (Clase 1): <strong>${statsData.casos_diabeticos || "268"}</strong></div>
+            <div>• Casos Control Sano (Clase 0): <strong>${statsData.casos_no_diabeticos || "500"}</strong></div>
+          </div>
+        ` : ""}
+
+        <!-- Monitor de Tráfico HTTP Reciente -->
+        <div>
+          <div style="font-size:12px; font-weight:700; color:#334155; margin-top:4px;">
+            📡 Monitor de Tráfico HTTP (Cliente ↔ Servidor)
+          </div>
+          ${transaccionHtml}
+        </div>
+
       </div>
     `;
-    abrirModal("Arquitectura & Base de Datos", contenido);
+
+    abrirModal("Telemetría Servidor & Red", modalHtml);
+
+    // Conectar botón de Ping interactivo
+    setTimeout(() => {
+      const btnPing = document.getElementById("btn-probar-ping");
+      if (btnPing) {
+        btnPing.addEventListener("click", async () => {
+          btnPing.textContent = "Probando...";
+          btnPing.disabled = true;
+          reproducirBeep(600, 0.05, "sine");
+          await cargarEstadisticasModal();
+        });
+      }
+    }, 50);
   }
 });
