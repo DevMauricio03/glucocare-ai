@@ -1196,46 +1196,85 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  // Indicador de conexión clickable
+  const indicadorConexion = document.querySelector(".indicador-conexion");
+  if (indicadorConexion) {
+    indicadorConexion.style.cursor = "pointer";
+    indicadorConexion.addEventListener("click", () => {
+      reproducirBeep(480, 0.05, "sine");
+      cargarEstadisticasModal();
+    });
+  }
+
   async function cargarEstadisticasModal() {
     let contenido = "";
-    try {
-      const res = await fetch("/api/estadisticas");
-      if (res.ok) {
-        const d = await res.json();
-        contenido = `
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:8px;">
-            <div style="background:#f0f9ff; padding:14px; border-radius:14px; text-align:center;">
-              <div style="font-size:24px; font-weight:800; color:#0284c7;">${d.total_registros}</div>
-              <div style="font-size:11px; text-transform:uppercase; color:#64748b; font-weight:700;">Pacientes en Base</div>
+    if (!esGitHubPages) {
+      try {
+        const res = await fetch("/api/estadisticas");
+        if (res.ok) {
+          const d = await res.json();
+          contenido = `
+            <div style="background:#ecfdf5; border:1px solid #a7f3d0; border-radius:12px; padding:12px; margin-bottom:12px;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span style="font-size:16px;">🟢</span>
+                <strong style="color:#065f46; font-size:13px;">Servidor Python Activo (Flask + MongoDB)</strong>
+              </div>
+              <p style="font-size:12px; color:#047857; margin:4px 0 0;">
+                Conectado en tiempo real al backend <code style="background:white; padding:1px 5px; border-radius:4px;">servidor.py</code>. Las predicciones se resuelven en Python con Scikit-Learn.
+              </p>
             </div>
-            <div style="background:#fef2f2; padding:14px; border-radius:14px; text-align:center;">
-              <div style="font-size:24px; font-weight:800; color:#dc2626;">${d.prevalencia}%</div>
-              <div style="font-size:11px; text-transform:uppercase; color:#64748b; font-weight:700;">Prevalencia</div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+              <div style="background:#f0f9ff; padding:14px; border-radius:14px; text-align:center;">
+                <div style="font-size:24px; font-weight:800; color:#0284c7;">${d.total_registros}</div>
+                <div style="font-size:11px; text-transform:uppercase; color:#64748b; font-weight:700;">Pacientes en Base</div>
+              </div>
+              <div style="background:#fef2f2; padding:14px; border-radius:14px; text-align:center;">
+                <div style="font-size:24px; font-weight:800; color:#dc2626;">${d.prevalencia}%</div>
+                <div style="font-size:11px; text-transform:uppercase; color:#64748b; font-weight:700;">Prevalencia</div>
+              </div>
             </div>
-          </div>
-          <div style="margin-top:12px; font-size:13px; color:#475569; line-height:1.5;">
-            • Base de datos: <strong>${d.base_datos}.${d.coleccion}</strong><br>
-            • Casos con Diabetes: <strong>${d.casos_diabeticos}</strong><br>
-            • Casos Sanos / Control: <strong>${d.casos_no_diabeticos}</strong>
-          </div>
-        `;
-        abrirModal("Base de Datos MongoDB", contenido);
-        return;
-      }
-    } catch (e) {}
+            <div style="margin-top:12px; font-size:12px; color:#475569; line-height:1.6; background:#f8fafc; padding:12px; border-radius:10px; border:1px solid #e2e8f0;">
+              • Base de datos: <strong>${d.base_datos}.${d.coleccion}</strong><br>
+              • Casos Diabéticos (Clase 1): <strong>${d.casos_diabeticos}</strong><br>
+              • Casos Sanos / Control (Clase 0): <strong>${d.casos_no_diabeticos}</strong><br>
+              • Endpoint REST: <strong>POST /api/predecir</strong>
+            </div>
+          `;
+          abrirModal("Telemetría: Servidor Python & Base de Datos", contenido);
+          return;
+        }
+      } catch (e) {}
+    }
 
+    // Modal para entorno GitHub Pages (Edge AI)
     contenido = `
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:8px;">
-        <div style="background:#f0f9ff; padding:14px; border-radius:14px; text-align:center;">
+      <div style="background:#f0f9ff; border:1px solid #bae6fd; border-radius:12px; padding:12px; margin-bottom:12px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size:16px;">🌐</span>
+          <strong style="color:#0369a1; font-size:13px;">Modo Producción: GitHub Pages (Edge AI)</strong>
+        </div>
+        <p style="font-size:12px; color:#0284c7; margin:4px 0 0; line-height:1.4;">
+          GitHub Pages es un hosting estático (no ejecuta servidores de Python). Por ello, el modelo <strong>Random Forest entrenado en Python</strong> se ejecuta directamente en el navegador del dispositivo (Edge Computing).
+        </p>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+        <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:14px; border-radius:14px; text-align:center;">
           <div style="font-size:24px; font-weight:800; color:#0284c7;">768</div>
           <div style="font-size:11px; text-transform:uppercase; color:#64748b; font-weight:700;">Historias Clínicas</div>
         </div>
-        <div style="background:#fef2f2; padding:14px; border-radius:14px; text-align:center;">
+        <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:14px; border-radius:14px; text-align:center;">
           <div style="font-size:24px; font-weight:800; color:#dc2626;">34.9%</div>
-          <div style="font-size:11px; text-transform:uppercase; color:#64748b; font-weight:700;">Prevalencia</div>
+          <div style="font-size:11px; text-transform:uppercase; color:#64748b; font-weight:700;">Prevalencia Base</div>
         </div>
       </div>
+
+      <div style="margin-top:12px; font-size:12px; color:#475569; line-height:1.6; background:#f8fafc; padding:12px; border-radius:10px; border:1px solid #e2e8f0;">
+        <strong>Arquitectura Híbrida del Proyecto:</strong><br>
+        1. <strong>En GitHub (Portátil en tu Celular)</strong>: Inferencia local sin depender de tener tu computadora encendida.<br>
+        2. <strong>En Red Local (Servidor Python)</strong>: Ejecutas <code style="background:#e2e8f0; padding:2px 4px; border-radius:4px;">python servidor.py</code> para conectar Flask y MongoDB en tiempo real.
+      </div>
     `;
-    abrirModal("Estadísticas del Dataset", contenido);
+    abrirModal("Arquitectura & Base de Datos", contenido);
   }
 });
