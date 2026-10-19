@@ -1102,71 +1102,492 @@ body {
   transition: width 0.65s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* ESTILOS DE FICHA MÉDICA IMPRIMIBLE */
+/* ==============================================================
+   ESTILOS DE FICHA MÉDICA OFICIAL HOSPITALARIA & IMPRESIÓN
+   ============================================================== */
+
 .ficha-clinica-imprimible {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  color: var(--texto-principal);
+  gap: 14px;
+  color: #0f172a;
+  background: #ffffff;
+  padding: 4px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
-.ficha-encabezado {
-  border-bottom: 2px solid #0284c7;
-  padding-bottom: 8px;
+
+/* 1. Membrete institucional */
+.doc-membrete {
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
+  align-items: center;
+  border-bottom: 2.5px solid #0284c7;
+  padding-bottom: 12px;
+  gap: 12px;
 }
-.ficha-titulo h3 {
-  font-size: 16px;
+.doc-logo-instituto {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.cruz-medica-svg {
+  color: #0284c7;
+  flex-shrink: 0;
+}
+.doc-instituto-texto h2 {
+  font-size: 14px;
   font-weight: 800;
-  color: #0369a1;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+  margin: 0;
+  line-height: 1.25;
 }
-.ficha-titulo span {
+.doc-instituto-texto h3 {
   font-size: 11px;
+  font-weight: 600;
+  color: #0284c7;
+  margin: 2px 0 0;
+}
+.doc-instituto-texto p {
+  font-size: 10px;
   color: #64748b;
+  margin: 2px 0 0;
 }
-.ficha-tabla-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin: 8px 0;
+.doc-sello-vigencia {
+  text-align: right;
+  flex-shrink: 0;
 }
-.ficha-dato-item {
+.doc-badge-original {
+  display: inline-block;
+  background: #f0fdf4;
+  color: #166534;
+  border: 1px solid #86efac;
+  font-size: 9px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 999px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.doc-folio-texto {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: #334155;
+  margin-top: 4px;
+  font-family: monospace;
+}
+
+/* 2. Sección datos del paciente */
+.doc-seccion-paciente {
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   border-radius: 10px;
-  padding: 8px 10px;
+  padding: 10px 14px;
 }
-.ficha-dato-label {
-  font-size: 10px;
+.doc-fila-datos {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px 16px;
+}
+.doc-dato-col {
+  display: flex;
+  flex-direction: column;
+}
+.doc-label {
+  font-size: 9px;
+  font-weight: 700;
   text-transform: uppercase;
   color: #64748b;
-  font-weight: 700;
-  display: block;
+  letter-spacing: 0.03em;
 }
-.ficha-dato-valor {
-  font-size: 13px;
+.doc-valor {
+  font-size: 12px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-top: 1px;
+}
+
+/* 3. Panel de laboratorio y biomarcadores */
+.doc-seccion-laboratorio {
+  margin-top: 2px;
+}
+.doc-titulo-seccion {
+  font-size: 11px;
   font-weight: 800;
+  color: #0369a1;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+  border-left: 3px solid #0284c7;
+  padding-left: 6px;
+}
+.doc-tabla-wrapper {
+  overflow-x: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+}
+.doc-tabla-analitica {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+  text-align: left;
+}
+.doc-tabla-analitica th {
+  background: #f1f5f9;
+  color: #334155;
+  font-weight: 700;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 8px 10px;
+  border-bottom: 1.5px solid #cbd5e1;
+}
+.doc-tabla-analitica td {
+  padding: 7px 10px;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+.doc-tabla-analitica tr:last-child td {
+  border-bottom: none;
+}
+.doc-tabla-analitica td strong {
+  display: block;
+  font-size: 11.5px;
   color: #0f172a;
 }
-.ficha-dictamen-box {
-  padding: 12px;
+.doc-tabla-analitica td small {
+  display: block;
+  font-size: 9.5px;
+  color: #64748b;
+}
+.badge-rango {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 9.5px;
+  font-weight: 700;
+  text-align: center;
+}
+.badge-rango.rango-optimo {
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+.badge-rango.rango-alerta {
+  background: #fffbeb;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+.badge-rango.rango-critico {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+}
+
+/* 4. Sección de dictamen clínico */
+.doc-seccion-dictamen {
   border-radius: 12px;
-  font-size: 13px;
+  padding: 12px 14px;
+  border-left: 4px solid #0284c7;
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+  border-right: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e2e8f0;
+}
+.doc-seccion-dictamen.estado-verde {
+  border-left-color: #10b981;
+  background: #f0fdf4;
+}
+.doc-seccion-dictamen.estado-ambar {
+  border-left-color: #f59e0b;
+  background: #fffbeb;
+}
+.doc-seccion-dictamen.estado-rojo {
+  border-left-color: #ef4444;
+  background: #fef2f2;
+}
+
+.doc-dictamen-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+.doc-dictamen-sub {
+  font-size: 9.5px;
+  text-transform: uppercase;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: #475569;
+}
+.doc-dictamen-titulo {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 3px 0 0;
+  line-height: 1.3;
+}
+.doc-score-box {
+  background: #ffffff;
+  padding: 6px 12px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  text-align: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+}
+.doc-score-pct {
+  display: block;
+  font-size: 18px;
+  font-weight: 900;
+  color: #0f172a;
+  line-height: 1;
+}
+.doc-score-label {
+  display: block;
+  font-size: 8.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.doc-conducta-box {
+  margin-top: 10px;
+  font-size: 11px;
+  color: #334155;
   line-height: 1.5;
 }
-.btn-imprimir-ficha {
-  background: var(--azul-gradiente);
-  color: #fff;
-  border: none;
-  padding: 12px;
-  border-radius: 12px;
-  font-weight: 700;
-  font-size: 14px;
-  cursor: pointer;
+.doc-conducta-box strong {
+  color: #0f172a;
+  display: block;
+  margin-bottom: 2px;
+}
+.doc-factores-lista {
   margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(0,0,0,0.12);
+  font-size: 10.5px;
+  color: #991b1b;
+}
+.doc-factores-lista strong {
+  display: block;
+  margin-bottom: 4px;
+}
+.doc-factores-lista ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+/* 5. Pie de página institucional y firmas */
+.doc-pie-pagina {
+  margin-top: 6px;
+  border-top: 1px solid #e2e8f0;
+  padding-top: 10px;
+}
+.doc-firmas-fila {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  margin-bottom: 10px;
+}
+.doc-sello-qr {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.doc-qr-simulado {
+  color: #0369a1;
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 8px;
+  padding: 6px;
+  display: grid;
+  place-items: center;
+}
+.doc-qr-detalles {
+  display: flex;
+  flex-direction: column;
+}
+.doc-qr-detalles span {
+  font-size: 9px;
+  font-weight: 800;
+  color: #0369a1;
+  letter-spacing: 0.03em;
+}
+.doc-qr-detalles small {
+  font-size: 8.5px;
+  color: #64748b;
+  font-family: monospace;
+}
+.doc-firma-medico {
+  text-align: right;
+  min-width: 190px;
+}
+.doc-linea-firma {
+  width: 100%;
+  border-top: 1px solid #475569;
+  margin-bottom: 4px;
+}
+.doc-firma-medico strong {
+  display: block;
+  font-size: 10.5px;
+  color: #0f172a;
+}
+.doc-firma-medico span {
+  display: block;
+  font-size: 8.5px;
+  color: #64748b;
+}
+.doc-disclaimer-legal {
+  font-size: 8px;
+  color: #94a3b8;
+  line-height: 1.4;
+  margin: 0;
+  text-align: justify;
+}
+
+/* Botón de imprimir visible en pantalla */
+.doc-acciones-pantalla {
+  margin-top: 10px;
+}
+.btn-imprimir-documento-oficial {
+  width: 100%;
+  background: var(--azul-gradiente);
+  color: #ffffff;
+  border: none;
+  padding: 14px;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
+  transition: transform 0.15s ease, filter 0.15s ease;
 }
+.btn-imprimir-documento-oficial:hover {
+  filter: brightness(1.06);
+}
+.btn-imprimir-documento-oficial:active {
+  transform: scale(0.98);
+}
+
+/* ==============================================================
+   REGLAS EXCLUSIVAS DE IMPRESIÓN Y EXPORTACIÓN A PDF (@media print)
+   ============================================================== */
+@media print {
+  @page {
+    size: letter portrait;
+    margin: 10mm 12mm 10mm 12mm;
+  }
+
+  /* Reset radical para evitar cualquier fondo gris, oscuro o teléfono */
+  html, body {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    font-size: 11pt !important;
+    overflow: visible !important;
+  }
+
+  /* Ocultar toda la interfaz del celular, cabeceras, botones y menús */
+  .cabecera-app,
+  .modulo-chips,
+  #banner-alerta-global,
+  .tarjeta-diagnostico,
+  .matriz-telemetria,
+  .stepper-modulo,
+  .stepper-tabs,
+  .formulario-paciente,
+  .zona-pulgar,
+  .barra-navegacion-inferior,
+  .overlay-escaneo,
+  .btn-cerrar-modal,
+  .modal-header,
+  .doc-acciones-pantalla,
+  .dispositivo-movil > *:not(#modal-sheet) {
+    display: none !important;
+  }
+
+  .dispositivo-movil {
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+  }
+
+  /* Expandir el modal a hoja completa plana */
+  #modal-sheet {
+    position: static !important;
+    display: block !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+    z-index: 1 !important;
+  }
+
+  .modal-card {
+    position: static !important;
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: none !important;
+    overflow: visible !important;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  #modal-cuerpo {
+    overflow: visible !important;
+    max-height: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .ficha-clinica-imprimible {
+    width: 100% !important;
+    display: block !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Asegurar fidelidad de colores e impresión exacta */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .doc-tabla-analitica {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+}
+
