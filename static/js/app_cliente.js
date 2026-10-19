@@ -18,6 +18,15 @@ document.addEventListener("DOMContentLoaded", () => {
   const modalCuerpo = document.getElementById("modal-cuerpo");
   const btnCerrarModal = document.getElementById("btn-cerrar-modal");
 
+  // Elementos del Wizard Stepper guiado
+  const btnPasoAnterior = document.getElementById("btn-paso-anterior");
+  const btnPasoSiguiente = document.getElementById("btn-paso-siguiente");
+  const textoBtnSiguiente = document.getElementById("texto-btn-siguiente");
+  const textoBtnAnalizar = document.getElementById("texto-btn-analizar");
+  const stepperTextoPaso = document.getElementById("stepper-texto-paso");
+  const stepperTextoPct = document.getElementById("stepper-texto-pct");
+  const stepperBarraProgreso = document.getElementById("stepper-barra-progreso");
+
   // Reglas y rangos de referencia para feedback visual en tiempo real
   const REGLAS = {
     embarazos: { min: 0, max: 25, sanoMin: 0, sanoMax: 3, entero: true, nombre: "Número de embarazos", unidad: "gestaciones" },
@@ -155,21 +164,199 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Pestañas / Segmented Control de grupos
+  // Fases del Wizard Stepper guiado
+  const FASES = [
+    {
+      id: "sangre",
+      nombre: "Fase 1: Perfil Glucémico (Sangre)",
+      pct: 33,
+      pctTexto: "Paso 1 / 3",
+      siguienteTexto: "Siguiente: Antropometría",
+      campos: ["glucosa", "insulina", "presion_arterial"]
+    },
+    {
+      id: "cuerpo",
+      nombre: "Fase 2: Antropometría & Composición",
+      pct: 66,
+      pctTexto: "Paso 2 / 3",
+      siguienteTexto: "Siguiente: Perfil",
+      campos: ["imc", "grosor_piel"]
+    },
+    {
+      id: "perfil",
+      nombre: "Fase 3: Datos Demográficos & Pedigrí",
+      pct: 100,
+      pctTexto: "Paso 3 / 3",
+      campos: ["edad", "embarazos", "pedigri_diabetes"]
+    }
+  ];
+
+  let faseActual = 0; // 0: sangre, 1: cuerpo, 2: perfil, -1: todos
+
+  // Función para cambiar de fase en el Wizard
+  function irAFase(index) {
+    limpiarErrores();
+    faseActual = index;
+
+    document.querySelectorAll(".paso-tab").forEach(t => t.classList.remove("activo"));
+
+    if (index === -1) {
+      // Modo "Todos": ver todo continuo
+      const tabTodos = document.getElementById("tab-todos");
+      if (tabTodos) tabTodos.classList.add("activo");
+
+      document.querySelectorAll(".card-grupo").forEach(g => g.style.display = "flex");
+
+      if (btnPasoAnterior) btnPasoAnterior.style.display = "none";
+      if (btnPasoSiguiente) btnPasoSiguiente.style.display = "none";
+      if (btnAnalizar) {
+        btnAnalizar.style.display = "flex";
+        if (textoBtnAnalizar) textoBtnAnalizar.textContent = "Evaluar Paciente Completo";
+      }
+
+      if (stepperTextoPaso) stepperTextoPaso.textContent = "Vista Completa: Todos los Biomarcadores";
+      if (stepperTextoPct) stepperTextoPct.textContent = "100%";
+      if (stepperBarraProgreso) stepperBarraProgreso.style.width = "100%";
+      return;
+    }
+
+    const fase = FASES[index];
+    const tabFase = document.getElementById(`tab-${fase.id}`);
+    if (tabFase) tabFase.classList.add("activo");
+
+    // Mostrar exclusivamente la card de la fase seleccionada
+    document.querySelectorAll(".card-grupo").forEach(g => {
+      if (g.dataset.categoria === fase.id) {
+        g.style.display = "flex";
+      } else {
+        g.style.display = "none";
+      }
+    });
+
+    // Actualizar barra de progreso y encabezado
+    if (stepperTextoPaso) stepperTextoPaso.textContent = fase.nombre;
+    if (stepperTextoPct) stepperTextoPct.textContent = fase.pctTexto;
+    if (stepperBarraProgreso) stepperBarraProgreso.style.width = `${fase.pct}%`;
+
+    // Configurar botones de navegación ergonómica en la zona del pulgar
+    if (index === 0) {
+      // Fase 1: Sangre
+      if (btnPasoAnterior) btnPasoAnterior.style.display = "none";
+      if (btnPasoSiguiente) {
+        btnPasoSiguiente.style.display = "flex";
+        if (textoBtnSiguiente) textoBtnSiguiente.textContent = fase.siguienteTexto;
+      }
+      if (btnAnalizar) btnAnalizar.style.display = "none";
+    } else if (index === 1) {
+      // Fase 2: Cuerpo
+      if (btnPasoAnterior) btnPasoAnterior.style.display = "inline-flex";
+      if (btnPasoSiguiente) {
+        btnPasoSiguiente.style.display = "flex";
+        if (textoBtnSiguiente) textoBtnSiguiente.textContent = fase.siguienteTexto;
+      }
+      if (btnAnalizar) btnAnalizar.style.display = "none";
+    } else if (index === 2) {
+      // Fase 3: Perfil (Final)
+      if (btnPasoAnterior) btnPasoAnterior.style.display = "inline-flex";
+      if (btnPasoSiguiente) btnPasoSiguiente.style.display = "none";
+      if (btnAnalizar) {
+        btnAnalizar.style.display = "flex";
+        if (textoBtnAnalizar) textoBtnAnalizar.textContent = "Evaluar Diagnóstico Completo";
+      }
+    }
+  }
+
+  // Validar únicamente los campos de una fase específica
+  function validarFase(camposFase) {
+    let tieneError = false;
+    let primerError = null;
+
+    camposFase.forEach(campo => {
+      const regla = REGLAS[campo];
+      const input = document.getElementById(campo);
+      const valorStr = input ? input.value.trim().replace(",", ".") : "";
+
+      if (!input || valorStr === "") {
+        mostrarErrorCampo(campo, "Campo obligatorio");
+        if (!primerError) primerError = input;
+        tieneError = true;
+        return;
+      }
+
+      const num = parseFloat(valorStr);
+      if (isNaN(num) || !isFinite(num)) {
+        mostrarErrorCampo(campo, "Número no válido");
+        if (!primerError) primerError = input;
+        tieneError = true;
+        return;
+      }
+
+      if (regla.entero && !Number.isInteger(num)) {
+        mostrarErrorCampo(campo, "Debe ser número entero");
+        if (!primerError) primerError = input;
+        tieneError = true;
+        return;
+      }
+
+      if (num < regla.min || num > regla.max) {
+        mostrarErrorCampo(campo, `Límite: ${regla.min} a ${regla.max} ${regla.unidad}`);
+        if (!primerError) primerError = input;
+        tieneError = true;
+        return;
+      }
+    });
+
+    if (primerError) {
+      primerError.focus();
+      primerError.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
+    return !tieneError;
+  }
+
+  // Evento botón "Siguiente"
+  if (btnPasoSiguiente) {
+    btnPasoSiguiente.addEventListener("click", () => {
+      if (faseActual >= 0 && faseActual < FASES.length - 1) {
+        const faseConfig = FASES[faseActual];
+        const esValida = validarFase(faseConfig.campos);
+        if (esValida) {
+          const tabActual = document.getElementById(`tab-${faseConfig.id}`);
+          if (tabActual) tabActual.classList.add("completado");
+          irAFase(faseActual + 1);
+          const sigCampoId = FASES[faseActual].campos[0];
+          document.getElementById(sigCampoId)?.focus();
+        }
+      }
+    });
+  }
+
+  // Evento botón "Anterior"
+  if (btnPasoAnterior) {
+    btnPasoAnterior.addEventListener("click", () => {
+      if (faseActual > 0) {
+        irAFase(faseActual - 1);
+      }
+    });
+  }
+
+  // Navegación táctil por pestañas
   document.querySelectorAll(".paso-tab").forEach(tab => {
     tab.addEventListener("click", () => {
-      document.querySelectorAll(".paso-tab").forEach(t => t.classList.remove("activo"));
-      tab.classList.add("activo");
       const filtro = tab.dataset.filtro;
-      document.querySelectorAll(".card-grupo").forEach(grupo => {
-        if (filtro === "todos" || grupo.dataset.categoria === filtro) {
-          grupo.style.display = "flex";
-        } else {
-          grupo.style.display = "none";
+      if (filtro === "todos") {
+        irAFase(-1);
+      } else {
+        const idx = FASES.findIndex(f => f.id === filtro);
+        if (idx !== -1) {
+          irAFase(idx);
         }
-      });
+      }
     });
   });
+
+  // Inicializar en Fase 1
+  irAFase(0);
 
   // Chips de seleccion rapida con micro-interaccion
   document.querySelectorAll(".chip-btn").forEach(btn => {
@@ -188,6 +375,9 @@ document.addEventListener("DOMContentLoaded", () => {
             actualizarMarcadorVisual(campo, valor);
           }
         }
+        FASES.forEach(f => {
+          document.getElementById(`tab-${f.id}`)?.classList.add("completado");
+        });
         enviarPeticionDiagnostico();
       }
     });
@@ -199,7 +389,9 @@ document.addEventListener("DOMContentLoaded", () => {
       limpiarErrores();
       form.reset();
       document.querySelectorAll(".chip-btn").forEach(b => b.classList.remove("activo"));
+      document.querySelectorAll(".paso-tab").forEach(t => t.classList.remove("completado"));
       Object.keys(REGLAS).forEach(c => actualizarMarcadorVisual(c, REGLAS[c].min));
+      irAFase(0);
       document.getElementById("glucosa")?.focus();
     });
   }
@@ -253,16 +445,16 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (hayErrores) {
-      if (bannerAlertaGlobal) {
-        bannerAlertaGlobal.textContent = "Verifica los campos en rojo: contienen valores fuera de los límites clínicos permitidos.";
-        bannerAlertaGlobal.style.display = "block";
-      }
-      // Si la pestaña actual oculta el campo con error, mostrar todos
-      const activeTab = document.querySelector(".paso-tab.activo");
-      if (activeTab && activeTab.dataset.filtro !== "todos") {
-        document.querySelector('.paso-tab[data-filtro="todos"]')?.click();
-      }
       if (primerErrorCampo) {
+        const campoErrId = primerErrorCampo.id;
+        const faseDelError = FASES.findIndex(f => f.campos.includes(campoErrId));
+        if (faseDelError !== -1 && faseActual !== faseDelError && faseActual !== -1) {
+          irAFase(faseDelError);
+        }
+        if (bannerAlertaGlobal) {
+          bannerAlertaGlobal.textContent = "Por favor completa los biomarcadores pendientes para obtener el dictamen.";
+          bannerAlertaGlobal.style.display = "block";
+        }
         primerErrorCampo.scrollIntoView({ behavior: "smooth", block: "center" });
         primerErrorCampo.focus();
       }
