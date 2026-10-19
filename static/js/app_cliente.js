@@ -45,49 +45,97 @@ document.addEventListener("DOMContentLoaded", () => {
     edad: { min: 1, max: 120, sanoMin: 18, sanoMax: 45, entero: true, nombre: "Edad del paciente", unidad: "años" }
   };
 
-  // Motor de sonido háptico Web Audio API (opcional y silenciable)
+  // Motor de sonido háptico Web Audio API (audible, desbloqueado por gestos y silenciable)
   let audioHabilitado = localStorage.getItem("glucocare_audio") !== "muted";
   const btnToggleSonido = document.getElementById("btn-toggle-sonido");
   const iconoSonido = document.getElementById("icono-sonido");
 
   function actualizarBotonSonido() {
     if (iconoSonido) iconoSonido.textContent = audioHabilitado ? "🔊" : "🔇";
+    if (btnToggleSonido) {
+      btnToggleSonido.setAttribute("title", audioHabilitado ? "Sonido activado (clic para silenciar)" : "Sonido silenciado (clic para activar)");
+    }
   }
   actualizarBotonSonido();
 
-  if (btnToggleSonido) {
-    btnToggleSonido.addEventListener("click", () => {
-      audioHabilitado = !audioHabilitado;
-      localStorage.setItem("glucocare_audio", audioHabilitado ? "enabled" : "muted");
-      actualizarBotonSonido();
-      if (audioHabilitado) reproducirBeep(660, 0.08, "sine");
-    });
+  // Instancia compartida de AudioContext (evita límite de instancias y asegura compatibilidad iOS/Android)
+  let audioCtx = null;
+
+  function obtenerAudioContext() {
+    if (!audioCtx) {
+      const AudioCtxClass = window.AudioContext || window.webkitAudioContext;
+      if (AudioCtxClass) {
+        audioCtx = new AudioCtxClass();
+      }
+    }
+    if (audioCtx && audioCtx.state === "suspended") {
+      audioCtx.resume();
+    }
+    return audioCtx;
   }
 
-  function reproducirBeep(frecuencia = 587.33, duracion = 0.06, tipo = "sine", gainLevel = 0.04) {
+  // Desbloquear AudioContext al primer toque/clic en cualquier parte de la pantalla (Requisito móvil iOS/Chrome)
+  const desbloquearAudio = () => {
+    obtenerAudioContext();
+  };
+  window.addEventListener("pointerdown", desbloquearAudio, { passive: true });
+  window.addEventListener("touchstart", desbloquearAudio, { passive: true });
+  window.addEventListener("click", desbloquearAudio, { passive: true });
+
+  function reproducirBeep(frecuencia = 587.33, duracion = 0.09, tipo = "sine", gainLevel = 0.18) {
     if (!audioHabilitado) return;
     try {
-      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
+      const ctx = obtenerAudioContext();
+      if (!ctx) return;
+      if (ctx.state === "suspended") {
+        ctx.resume();
+      }
+
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const now = ctx.currentTime;
+
       osc.type = tipo;
-      osc.frequency.setValueAtTime(frecuencia, audioCtx.currentTime);
-      gain.gain.setValueAtTime(gainLevel, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duracion);
+      osc.frequency.setValueAtTime(frecuencia, now);
+
+      // Curva de ganancia audible sin chasquidos
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.linearRampToValueAtTime(gainLevel, now + 0.015);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + duracion);
+
       osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.start();
-      osc.stop(audioCtx.currentTime + duracion);
+      gain.connect(ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + duracion);
+
+      // Micro-vibración háptica física en celulares compatibles
+      if (navigator.vibrate) {
+        try { navigator.vibrate(25); } catch (e) {}
+      }
     } catch (e) {
-      // Audio no disponible o silenciado
+      // Audio no disponible
     }
   }
 
   function reproducirSonidoExito() {
     if (!audioHabilitado) return;
-    reproducirBeep(523.25, 0.08, "triangle", 0.03);
-    setTimeout(() => reproducirBeep(659.25, 0.08, "triangle", 0.03), 70);
-    setTimeout(() => reproducirBeep(783.99, 0.16, "sine", 0.04), 140);
+    reproducirBeep(523.25, 0.10, "triangle", 0.22); // Do (C5)
+    setTimeout(() => reproducirBeep(659.25, 0.10, "triangle", 0.22), 90); // Mi (E5)
+    setTimeout(() => reproducirBeep(783.99, 0.22, "sine", 0.25), 180); // Sol (G5)
+  }
+
+  if (btnToggleSonido) {
+    btnToggleSonido.addEventListener("click", (e) => {
+      e.stopPropagation();
+      audioHabilitado = !audioHabilitado;
+      localStorage.setItem("glucocare_audio", audioHabilitado ? "enabled" : "muted");
+      actualizarBotonSonido();
+      if (audioHabilitado) {
+        obtenerAudioContext();
+        reproducirBeep(659.25, 0.15, "triangle", 0.25);
+      }
+    });
   }
 
   let ultimoResultado = null;
@@ -637,7 +685,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (escaneoTextoFase) escaneoTextoFase.textContent = "Analizando Ensamble Bioestadístico...";
       setTimeout(() => {
         if (escaneoBarraFill) escaneoBarraFill.style.width = "100%";
-        reproducirBeep(520, 0.08, "sine", 0.03);
+        reproducirBeep(520, 0.08, "triangle", 0.18);
       }, 30);
     }
 
