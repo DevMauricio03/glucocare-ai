@@ -383,11 +383,30 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  // Resetear la tarjeta de dictamen al estado inicial en espera
+  function resetearTarjetaDiagnostico() {
+    tarjetaDiag.className = "tarjeta-diagnostico";
+    badgeAlerta.className = "badge-alerta espera";
+    badgeAlerta.textContent = "En Espera";
+
+    const perimetro = 226;
+    arcoProgreso.style.strokeDashoffset = perimetro;
+    arcoProgreso.style.stroke = "var(--azul-medico)";
+
+    textoPorcentaje.textContent = "0%";
+    tituloDiag.textContent = "Sin Evaluar";
+    descDiag.textContent = "Ingresa los biomarcadores del paciente o selecciona un paciente de prueba arriba para obtener el veredicto del modelo.";
+
+    listaFactores.innerHTML = "";
+    listaFactores.style.display = "none";
+  }
+
   // Boton Limpiar campos
   if (btnLimpiar) {
     btnLimpiar.addEventListener("click", () => {
       limpiarErrores();
       form.reset();
+      resetearTarjetaDiagnostico();
       document.querySelectorAll(".chip-btn").forEach(b => b.classList.remove("activo"));
       document.querySelectorAll(".paso-tab").forEach(t => t.classList.remove("completado"));
       Object.keys(REGLAS).forEach(c => actualizarMarcadorVisual(c, REGLAS[c].min));
@@ -510,9 +529,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     btnAnalizar.disabled = false;
+    const txtBoton = faseActual === -1 ? "Evaluar Paciente Completo" : "Evaluar Diagnóstico Completo";
     btnAnalizar.innerHTML = `
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
-      <span>Evaluar Paciente en Servidor</span>
+      <span id="texto-btn-analizar">${txtBoton}</span>
     `;
   }
 
