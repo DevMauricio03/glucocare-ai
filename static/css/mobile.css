@@ -310,6 +310,40 @@ body {
   box-shadow: 0 4px 12px rgba(2, 132, 199, 0.15);
 }
 
+/* SELECTOR DE SEXO BIOLÓGICO */
+.selector-sexo-chips {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 6px;
+}
+.chip-sexo {
+  background: var(--fondo-tarjeta);
+  border: 1.5px solid var(--borde-suave);
+  border-radius: var(--radio-pildora);
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--texto-secundario);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+}
+.chip-sexo:hover {
+  border-color: var(--azul-medico);
+  color: var(--azul-medico);
+}
+.chip-sexo.activo {
+  border-color: var(--azul-medico);
+  background: var(--azul-suave);
+  color: var(--azul-medico);
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.15);
+}
+
 /* PILAR UX: REPORTE CLÍNICO HERO CON MEDIDOR VISUAL */
 .tarjeta-diagnostico {
   background: var(--fondo-tarjeta);

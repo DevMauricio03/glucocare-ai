@@ -9,7 +9,14 @@ function predecirDiabetesEnNavegador(datos) {
   // 1. Validacion clinica y defensiva (misma logica que servidor.py)
   for (const f of features) {
     const regla = reglas[f];
-    const valCrudo = datos[f];
+    let valCrudo = datos[f];
+
+    if (f === "embarazos") {
+      const sexo = String(datos.sexo || "").toLowerCase();
+      if (sexo === "masculino" || sexo === "hombre" || sexo === "m" || valCrudo === undefined || valCrudo === null || valCrudo === "") {
+        valCrudo = 0;
+      }
+    }
 
     if (valCrudo === undefined || valCrudo === null || valCrudo === "" || typeof valCrudo === "boolean") {
       return { exito: false, error: "El campo '" + regla.nombre + "' contiene un valor no valido o vacio." };

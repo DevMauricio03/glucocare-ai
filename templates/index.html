@@ -355,26 +355,45 @@
             <span class="error-msg-campo" id="err-edad"></span>
           </div>
 
-          <!-- Embarazos -->
+          <!-- Sexo Biológico (Mujer / Hombre) -->
           <div class="campo-movil">
             <div class="campo-fila-top">
+              <span class="campo-label">Sexo Biológico</span>
+              <span class="campo-rango-badge" id="badge-sexo">Opcional</span>
+            </div>
+            <div class="selector-sexo-chips" role="radiogroup" aria-label="Sexo Biológico">
+              <button type="button" class="chip-sexo activo" id="btn-sexo-femenino" data-sexo="femenino">
+                <span>👩</span> <span>Mujer</span>
+              </button>
+              <button type="button" class="chip-sexo" id="btn-sexo-masculino" data-sexo="masculino">
+                <span>👨</span> <span>Hombre</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Embarazos (Opcional) -->
+          <div class="campo-movil" id="contenedor-campo-embarazos">
+            <div class="campo-fila-top">
               <div class="campo-label-con-info">
-                <label class="campo-label" for="embarazos">Número de Embarazos</label>
+                <label class="campo-label" for="embarazos">Número de Embarazos <span style="font-weight: 500; font-size: 11px; color: var(--azul-medico);">(Opcional)</span></label>
                 <button type="button" class="btn-info-tooltip" data-campo="embarazos" aria-label="Información de embarazos">ⓘ</button>
               </div>
-              <span class="campo-rango-badge">Gestaciones (0 a 25)</span>
+              <span class="campo-rango-badge" id="badge-embarazos">0 a 25 gestaciones</span>
             </div>
             <div class="caja-explicacion" id="exp-embarazos">
-              💡 Número de embarazos previos. Múltiples gestaciones o historial de diabetes gestacional elevan el riesgo a largo plazo.
+              💡 Opcional: Para pacientes masculinos o mujeres sin gestaciones previas, puedes dejarlo vacío o en 0. Múltiples gestaciones o historial de diabetes gestacional elevan el riesgo a largo plazo.
             </div>
             <div class="campo-input-caja">
               <input class="campo-input" type="number" inputmode="numeric" step="1" min="0" max="25" maxlength="2"
-                     id="embarazos" name="embarazos" placeholder="Ej. 1 (0 a 25)" required>
+                     id="embarazos" name="embarazos" placeholder="0 (Opcional)">
               <span class="campo-unidad">cant</span>
             </div>
             <div class="mini-rango-track">
               <div class="mini-rango-zona-saludable" style="left: 0%; width: 12%;"></div>
               <div class="mini-rango-marcador" id="marcador-embarazos" style="left: 0%;"></div>
+            </div>
+            <div id="aviso-embarazos-hombre" style="display: none; font-size: 11px; color: #0284c7; background: #f0f9ff; border: 1px solid #bae6fd; padding: 6px 10px; border-radius: 8px; margin-top: 6px;">
+              ℹ️ Paciente masculino: gestaciones fijadas en 0 biológicamente.
             </div>
             <span class="error-msg-campo" id="err-embarazos"></span>
           </div>

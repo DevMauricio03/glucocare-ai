@@ -34,7 +34,8 @@ REGLAS_BIOMARCADORES = {
         "max": 25,
         "es_entero": True,
         "unidad": "gestaciones",
-        "rango_esperado": "0 a 25 gestaciones",
+        "rango_esperado": "0 a 25 gestaciones (Opcional)",
+        "opcional": True,
     },
     "glucosa": {
         "nombre": "Glucosa Plasmática",
@@ -147,8 +148,17 @@ def sanitizar_y_validar_paciente(datos_cliente):
     datos_limpios = {}
     errores_validacion = []
 
+    # Detección de sexo biológico: si es hombre, embarazos es 0 biológicamente
+    sexo = str(datos_cliente.get("sexo", "")).lower().strip()
+    if sexo in ["masculino", "hombre", "m"]:
+        datos_cliente["embarazos"] = 0
+
     for campo, regla in REGLAS_BIOMARCADORES.items():
-        if campo not in datos_cliente:
+        # Permitir que embarazos sea opcional (hombres o mujeres sin gestaciones previas)
+        if campo not in datos_cliente or datos_cliente[campo] == "" or (campo == "embarazos" and datos_cliente[campo] is None):
+            if campo == "embarazos":
+                datos_limpios["embarazos"] = 0
+                continue
             errores_validacion.append(f"Falta el biomarcador obligatorio: '{regla['nombre']}' ({campo}).")
             continue
 

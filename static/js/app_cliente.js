@@ -35,7 +35,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Reglas y rangos de referencia para feedback visual en tiempo real
   const REGLAS = {
-    embarazos: { min: 0, max: 25, sanoMin: 0, sanoMax: 3, entero: true, nombre: "Número de embarazos", unidad: "gestaciones" },
+    embarazos: { min: 0, max: 25, sanoMin: 0, sanoMax: 3, entero: true, nombre: "Número de embarazos", unidad: "gestaciones", opcional: true },
     glucosa: { min: 30, max: 600, sanoMin: 70, sanoMax: 99, entero: false, nombre: "Glucosa plasmática", unidad: "mg/dL" },
     presion_arterial: { min: 30, max: 180, sanoMin: 60, sanoMax: 80, entero: false, nombre: "Presión arterial", unidad: "mmHg" },
     grosor_piel: { min: 2, max: 99, sanoMin: 10, sanoMax: 30, entero: false, nombre: "Pliegue cutáneo", unidad: "mm" },
@@ -158,6 +158,61 @@ document.addEventListener("DOMContentLoaded", () => {
       pedigri_diabetes: 0.850, edad: 54
     }
   };
+
+  // Control de Sexo Biológico (Mujer / Hombre)
+  let sexoSeleccionado = "femenino";
+  const btnSexoFemenino = document.getElementById("btn-sexo-femenino");
+  const btnSexoMasculino = document.getElementById("btn-sexo-masculino");
+  const inputEmbarazos = document.getElementById("embarazos");
+  const avisoEmbarazosHombre = document.getElementById("aviso-embarazos-hombre");
+
+  function setSexo(sexo) {
+    sexoSeleccionado = sexo;
+    if (btnSexoFemenino && btnSexoMasculino) {
+      if (sexo === "masculino") {
+        btnSexoMasculino.classList.add("activo");
+        btnSexoFemenino.classList.remove("activo");
+        if (inputEmbarazos) {
+          inputEmbarazos.value = "0";
+          inputEmbarazos.disabled = true;
+          inputEmbarazos.style.opacity = "0.6";
+          inputEmbarazos.style.cursor = "not-allowed";
+          actualizarMarcadorVisual("embarazos", 0);
+          limpiarErrorCampoIndividual("embarazos");
+        }
+        if (avisoEmbarazosHombre) avisoEmbarazosHombre.style.display = "block";
+      } else {
+        btnSexoFemenino.classList.add("activo");
+        btnSexoMasculino.classList.remove("activo");
+        if (inputEmbarazos) {
+          inputEmbarazos.disabled = false;
+          inputEmbarazos.style.opacity = "1";
+          inputEmbarazos.style.cursor = "auto";
+        }
+        if (avisoEmbarazosHombre) avisoEmbarazosHombre.style.display = "none";
+      }
+    }
+  }
+
+  function limpiarErrorCampoIndividual(campo) {
+    const input = document.getElementById(campo);
+    const errSpan = document.getElementById(`err-${campo}`);
+    if (input) input.classList.remove("input-error");
+    if (errSpan) errSpan.textContent = "";
+  }
+
+  if (btnSexoFemenino) {
+    btnSexoFemenino.addEventListener("click", () => {
+      reproducirBeep(520, 0.05, "sine");
+      setSexo("femenino");
+    });
+  }
+  if (btnSexoMasculino) {
+    btnSexoMasculino.addEventListener("click", () => {
+      reproducirBeep(440, 0.05, "sine");
+      setSexo("masculino");
+    });
+  }
 
   // Matriz de telemetría de 4 órganos/sistemas en tiempo real
   function actualizarMatrizTelemetria() {
@@ -453,6 +508,9 @@ document.addEventListener("DOMContentLoaded", () => {
       const valorStr = input ? input.value.trim().replace(",", ".") : "";
 
       if (!input || valorStr === "") {
+        if (regla.opcional || (campo === "embarazos" && sexoSeleccionado === "masculino")) {
+          return;
+        }
         mostrarErrorCampo(campo, "Campo obligatorio");
         if (!primerError) primerError = input;
         tieneError = true;
@@ -548,6 +606,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const tipo = btn.dataset.perfil;
       const datos = perfiles[tipo];
       if (datos) {
+        setSexo("femenino");
         for (const [campo, valor] of Object.entries(datos)) {
           const input = document.getElementById(campo);
           if (input) {
@@ -592,6 +651,7 @@ document.addEventListener("DOMContentLoaded", () => {
       reproducirBeep(350, 0.05, "sine");
       limpiarErrores();
       form.reset();
+      setSexo("femenino");
       resetearTarjetaDiagnostico();
       actualizarMatrizTelemetria();
       document.querySelectorAll(".chip-btn").forEach(b => b.classList.remove("activo"));
@@ -616,9 +676,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
     for (const [campo, regla] of Object.entries(REGLAS)) {
       const input = document.getElementById(campo);
-      const valorStr = input ? input.value.trim().replace(",", ".") : "";
+      let valorStr = input ? input.value.trim().replace(",", ".") : "";
+
+      // Caso especial: Embarazos opcional o paciente masculino
+      if (campo === "embarazos" && (sexoSeleccionado === "masculino" || valorStr === "")) {
+        payload[campo] = 0;
+        continue;
+      }
 
       if (!input || valorStr === "") {
+        if (regla.opcional) {
+          payload[campo] = 0;
+          continue;
+        }
         mostrarErrorCampo(campo, `Campo obligatorio`);
         if (!primerErrorCampo) primerErrorCampo = input;
         hayErrores = true;
@@ -649,6 +719,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       payload[campo] = regla.entero ? parseInt(num, 10) : num;
     }
+    payload["sexo"] = sexoSeleccionado;
 
     if (hayErrores) {
       if (primerErrorCampo) {
@@ -886,16 +957,16 @@ document.addEventListener("DOMContentLoaded", () => {
               <span class="doc-valor">${fechaStr}</span>
             </div>
             <div class="doc-dato-col">
+              <span class="doc-label">SEXO BIOLÓGICO:</span>
+              <span class="doc-valor">${payload.sexo === "masculino" ? "Masculino (Hombre)" : "Femenino (Mujer)"}</span>
+            </div>
+            <div class="doc-dato-col">
               <span class="doc-label">EDAD DEL PACIENTE:</span>
               <span class="doc-valor">${payload.edad} años</span>
             </div>
             <div class="doc-dato-col">
-              <span class="doc-label">ANTECEDENTES GESTACIONALES:</span>
-              <span class="doc-valor">${payload.embarazos} gestaciones registradas</span>
-            </div>
-            <div class="doc-dato-col">
-              <span class="doc-label">PROTOCOLO PREDICTIVO:</span>
-              <span class="doc-valor">Random Forest Bioestadístico (ADA / OMS - 120 Estimadores)</span>
+              <span class="doc-label">HISTORIAL OBSTÉTRICO:</span>
+              <span class="doc-valor">${payload.sexo === "masculino" ? "No aplica por sexo (0)" : (payload.embarazos + " gestaciones registradas")}</span>
             </div>
           </div>
         </section>
@@ -978,6 +1049,19 @@ document.addEventListener("DOMContentLoaded", () => {
                   <td style="text-align: center; color: #475569;">0.080 - 0.500</td>
                   <td style="text-align: center;">
                     <span class="badge-rango ${bGen.clase}">${bGen.texto}</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <strong>Antecedentes Gestacionales</strong>
+                    <small>Historial obstétrico previo</small>
+                  </td>
+                  <td style="text-align: right; font-weight: 700;">${payload.sexo === "masculino" ? "0 (No aplica)" : payload.embarazos + " gestaciones"}</td>
+                  <td style="text-align: center; color: #475569;">${payload.sexo === "masculino" ? "No aplica por sexo" : "0 - 3 gestaciones (riesgo basal)"}</td>
+                  <td style="text-align: center;">
+                    <span class="badge-rango ${payload.sexo === "masculino" ? "rango-optimo" : (payload.embarazos > 3 ? "rango-alerta" : "rango-optimo")}">
+                      ${payload.sexo === "masculino" ? "NO APLICA" : (payload.embarazos > 3 ? "MULTIGESTA" : "NORMAL")}
+                    </span>
                   </td>
                 </tr>
               </tbody>

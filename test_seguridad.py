@@ -70,6 +70,16 @@ p_borde = {
 r2 = cliente.post("/api/predecir", json=p_borde)
 registrar("1.3 Paciente en limites clinicos altos aceptado", r2.status_code == 200)
 
+# Caso 1.4: Paciente masculino u omitiendo embarazos (campo opcional)
+p_hombre = dict(p_sano, sexo="masculino")
+del p_hombre["embarazos"]
+r2_hombre = cliente.post("/api/predecir", json=p_hombre)
+d_hombre = r2_hombre.get_json() or {}
+registrar(
+    "1.4 Paciente masculino u omitiendo embarazo procesado correctamente (embarazos=0)",
+    r2_hombre.status_code == 200 and d_hombre.get("parametros_analizados", {}).get("embarazos") == 0
+)
+
 # ---------------------------------------------------------------------
 # PERFIL 2: PERSONA QUE QUIERE ALTERAR / TROLLEAR DATOS
 # ---------------------------------------------------------------------
