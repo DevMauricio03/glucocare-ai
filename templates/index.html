@@ -13,20 +13,39 @@
   <!-- CONTENEDOR PRINCIPAL DE LA APLICACIÓN -->
   <main class="dispositivo-movil" role="main">
 
-    <!-- CABECERA APP MÉDICA -->
+    <!-- CABECERA APP MÉDICA CON TELEMETRÍA ECG EN VIVO -->
     <section class="cabecera-app">
-      <div class="perfil-app">
-        <div class="app-avatar" aria-hidden="true">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+      <div class="cabecera-fila-principal">
+        <div class="perfil-app">
+          <div class="app-avatar" aria-hidden="true">
+            <svg class="pulso-avatar" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+          </div>
+          <div class="app-titulos">
+            <div class="app-titulos-fila">
+              <h1>GlucoCare AI</h1>
+              <span class="badge-version">v2.5 Pro</span>
+            </div>
+            <p>Telemetría Clínica Inteligente</p>
+          </div>
         </div>
-        <div class="app-titulos">
-          <h1>GlucoCare AI</h1>
-          <p>Evaluación Clínica Segura</p>
+        
+        <div class="cabecera-controles">
+          <button type="button" id="btn-toggle-sonido" class="btn-icono-cabecera" title="Activar/Silenciar sonido háptico" aria-label="Audio háptico">
+            <span id="icono-sonido">🔊</span>
+          </button>
+          <div class="indicador-conexion" title="Estado de conectividad del modelo">
+            <span class="punto-verde" aria-hidden="true"></span>
+            <span id="texto-conexion">Online</span>
+          </div>
         </div>
       </div>
-      <div class="indicador-conexion" title="Estado de conectividad del modelo">
-        <span class="punto-verde" aria-hidden="true"></span>
-        <span id="texto-conexion">Servidor Online</span>
+
+      <!-- LÍNEA DE ELECTROCARDIOGRAMA (ECG) EN TIEMPO REAL -->
+      <div class="ecg-onda-wrapper" aria-hidden="true">
+        <svg class="ecg-svg" viewBox="0 0 600 28" preserveAspectRatio="none">
+          <path class="ecg-trazo-fondo" d="M0,14 L120,14 L130,5 L140,23 L150,2 L160,26 L170,14 L300,14 L310,5 L320,23 L330,2 L340,26 L350,14 L480,14 L490,5 L500,23 L510,2 L520,26 L530,14 L600,14"></path>
+          <path class="ecg-trazo-luz" d="M0,14 L120,14 L130,5 L140,23 L150,2 L160,26 L170,14 L300,14 L310,5 L320,23 L330,2 L340,26 L350,14 L480,14 L490,5 L500,23 L510,2 L520,26 L530,14 L600,14"></path>
+        </svg>
       </div>
     </section>
 
@@ -36,7 +55,7 @@
       <!-- PILAR UX 1: SELECCIÓN RÁPIDA DE PACIENTES (REDUCCIÓN DE CARGA COGNITIVA) -->
       <section class="modulo-chips" aria-label="Muestras rápidas">
         <div class="etiqueta-fila-chips">
-          <span class="etiqueta-seccion">Pacientes de prueba rápida:</span>
+          <span class="etiqueta-seccion">Casos Clínicos de Muestra:</span>
           <button type="button" id="btn-limpiar-campos" class="btn-limpiar-texto">Limpiar todo</button>
         </div>
         <div class="lista-chips">
@@ -65,8 +84,8 @@
         <div class="medidor-fila">
           <div class="medidor-svg-wrapper">
             <svg class="medidor-svg" viewBox="0 0 90 90" aria-hidden="true">
-              <circle class="medidor-fondo" cx="45" cy="45" r="36"></circle>
-              <circle id="medidor-progreso" class="medidor-progreso" cx="45" cy="45" r="36"></circle>
+              <circle class="medidor-fondo" cx="45" cy="45" r="36" fill="none" stroke-width="8"></circle>
+              <circle id="medidor-progreso" class="medidor-progreso" cx="45" cy="45" r="36" fill="none" stroke-width="8"></circle>
             </svg>
             <div class="medidor-texto-centro">
               <span id="cifra-porcentaje-num" class="cifra-porcentaje">0%</span>
@@ -81,6 +100,50 @@
         </div>
 
         <div id="factores-lista" class="factores-lista" style="display: none;"></div>
+
+        <!-- ACCIONES RÁPIDAS DEL DICTAMEN -->
+        <div id="diag-acciones-resultado" class="diag-acciones-resultado" style="display: none;">
+          <button type="button" id="btn-exportar-ficha" class="btn-exportar-ficha">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            <span>Generar Ficha Médica Oficial</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- PILAR EXPERIENCIAL: MATRIZ DE TELEMETRÍA METABÓLICA EN TIEMPO REAL -->
+      <section class="matriz-telemetria" aria-label="Matriz metabólica">
+        <div class="telemetria-nodo" id="nodo-glucosa">
+          <div class="nodo-header">
+            <span class="nodo-icono">🩸</span>
+            <span class="nodo-pulso" id="pulso-nodo-glucosa"></span>
+          </div>
+          <span class="nodo-label">Glucemia</span>
+          <span class="nodo-estado" id="estado-nodo-glucosa">Pendiente</span>
+        </div>
+        <div class="telemetria-nodo" id="nodo-presion">
+          <div class="nodo-header">
+            <span class="nodo-icono">🫀</span>
+            <span class="nodo-pulso" id="pulso-nodo-presion"></span>
+          </div>
+          <span class="nodo-label">Presión</span>
+          <span class="nodo-estado" id="estado-nodo-presion">Pendiente</span>
+        </div>
+        <div class="telemetria-nodo" id="nodo-imc">
+          <div class="nodo-header">
+            <span class="nodo-icono">⚖️</span>
+            <span class="nodo-pulso" id="pulso-nodo-imc"></span>
+          </div>
+          <span class="nodo-label">Composición</span>
+          <span class="nodo-estado" id="estado-nodo-imc">Pendiente</span>
+        </div>
+        <div class="telemetria-nodo" id="nodo-genetica">
+          <div class="nodo-header">
+            <span class="nodo-icono">🧬</span>
+            <span class="nodo-pulso" id="pulso-nodo-genetica"></span>
+          </div>
+          <span class="nodo-label">Genética</span>
+          <span class="nodo-estado" id="estado-nodo-genetica">Pendiente</span>
+        </div>
       </section>
 
       <!-- WIZARD STEPPER ERGONÓMICO -->
@@ -386,6 +449,21 @@
           <button type="button" id="btn-cerrar-modal" class="btn-cerrar-modal" aria-label="Cerrar modal">✕</button>
         </div>
         <div id="modal-cuerpo"></div>
+      </div>
+    </div>
+
+    <!-- OVERLAY DE ESCANEO CLÍNICO CON EFECTO LÁSER -->
+    <div id="overlay-escaneo-clinico" class="overlay-escaneo" style="display: none;" aria-hidden="true">
+      <div class="escaneo-tarjeta">
+        <div class="haz-laser"></div>
+        <div class="escaneo-avatar">
+          <svg class="pulso-avatar" width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+        </div>
+        <h3 id="escaneo-texto-fase">Telemetría Clínica en Curso...</h3>
+        <p id="escaneo-subtexto">Procesando biomarcadores con ensamble Random Forest (120 árboles)</p>
+        <div class="escaneo-barra-wrapper">
+          <div id="escaneo-barra-fill" class="escaneo-barra-fill"></div>
+        </div>
       </div>
     </div>
 

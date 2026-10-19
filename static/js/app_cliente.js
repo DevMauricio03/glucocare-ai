@@ -18,6 +18,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const modalCuerpo = document.getElementById("modal-cuerpo");
   const btnCerrarModal = document.getElementById("btn-cerrar-modal");
 
+  // Detección de entorno (Local Server vs GitHub Pages)
+  const esGitHubPages = window.location.hostname.includes("github.io") || window.location.protocol === "file:";
+  if (etiquetaConexion) {
+    etiquetaConexion.textContent = esGitHubPages ? "Edge AI" : "Online";
+  }
+
   // Elementos del Wizard Stepper guiado
   const btnPasoAnterior = document.getElementById("btn-paso-anterior");
   const btnPasoSiguiente = document.getElementById("btn-paso-siguiente");
@@ -39,11 +45,52 @@ document.addEventListener("DOMContentLoaded", () => {
     edad: { min: 1, max: 120, sanoMin: 18, sanoMax: 45, entero: true, nombre: "Edad del paciente", unidad: "años" }
   };
 
-  // Detectar entorno de ejecucion
-  const esGitHubPages = window.location.hostname.includes("github.io") || window.location.protocol === "file:";
-  if (esGitHubPages && etiquetaConexion) {
-    etiquetaConexion.textContent = "Motor ML en Celular";
+  // Motor de sonido háptico Web Audio API (opcional y silenciable)
+  let audioHabilitado = localStorage.getItem("glucocare_audio") !== "muted";
+  const btnToggleSonido = document.getElementById("btn-toggle-sonido");
+  const iconoSonido = document.getElementById("icono-sonido");
+
+  function actualizarBotonSonido() {
+    if (iconoSonido) iconoSonido.textContent = audioHabilitado ? "🔊" : "🔇";
   }
+  actualizarBotonSonido();
+
+  if (btnToggleSonido) {
+    btnToggleSonido.addEventListener("click", () => {
+      audioHabilitado = !audioHabilitado;
+      localStorage.setItem("glucocare_audio", audioHabilitado ? "enabled" : "muted");
+      actualizarBotonSonido();
+      if (audioHabilitado) reproducirBeep(660, 0.08, "sine");
+    });
+  }
+
+  function reproducirBeep(frecuencia = 587.33, duracion = 0.06, tipo = "sine", gainLevel = 0.04) {
+    if (!audioHabilitado) return;
+    try {
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = tipo;
+      osc.frequency.setValueAtTime(frecuencia, audioCtx.currentTime);
+      gain.gain.setValueAtTime(gainLevel, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duracion);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + duracion);
+    } catch (e) {
+      // Audio no disponible o silenciado
+    }
+  }
+
+  function reproducirSonidoExito() {
+    if (!audioHabilitado) return;
+    reproducirBeep(523.25, 0.08, "triangle", 0.03);
+    setTimeout(() => reproducirBeep(659.25, 0.08, "triangle", 0.03), 70);
+    setTimeout(() => reproducirBeep(783.99, 0.16, "sine", 0.04), 140);
+  }
+
+  let ultimoResultado = null;
 
   // Perfiles de prueba clinica
   const perfiles = {
@@ -63,6 +110,85 @@ document.addEventListener("DOMContentLoaded", () => {
       pedigri_diabetes: 0.850, edad: 54
     }
   };
+
+  // Matriz de telemetría de 4 órganos/sistemas en tiempo real
+  function actualizarMatrizTelemetria() {
+    const vGlucosa = parseFloat(document.getElementById("glucosa")?.value || "");
+    const nodoGlucosa = document.getElementById("nodo-glucosa");
+    const estadoGlucosa = document.getElementById("estado-nodo-glucosa");
+    if (nodoGlucosa && estadoGlucosa) {
+      nodoGlucosa.classList.remove("nodo-optimo", "nodo-alerta", "nodo-riesgo");
+      if (isNaN(vGlucosa)) {
+        estadoGlucosa.textContent = "Pendiente";
+      } else if (vGlucosa <= 99) {
+        nodoGlucosa.classList.add("nodo-optimo");
+        estadoGlucosa.textContent = "Normal";
+      } else if (vGlucosa <= 125) {
+        nodoGlucosa.classList.add("nodo-alerta");
+        estadoGlucosa.textContent = "Alerta";
+      } else {
+        nodoGlucosa.classList.add("nodo-riesgo");
+        estadoGlucosa.textContent = "Elevada";
+      }
+    }
+
+    const vPresion = parseFloat(document.getElementById("presion_arterial")?.value || "");
+    const nodoPresion = document.getElementById("nodo-presion");
+    const estadoPresion = document.getElementById("estado-nodo-presion");
+    if (nodoPresion && estadoPresion) {
+      nodoPresion.classList.remove("nodo-optimo", "nodo-alerta", "nodo-riesgo");
+      if (isNaN(vPresion)) {
+        estadoPresion.textContent = "Pendiente";
+      } else if (vPresion <= 80) {
+        nodoPresion.classList.add("nodo-optimo");
+        estadoPresion.textContent = "Óptima";
+      } else if (vPresion <= 89) {
+        nodoPresion.classList.add("nodo-alerta");
+        estadoPresion.textContent = "Límite";
+      } else {
+        nodoPresion.classList.add("nodo-riesgo");
+        estadoPresion.textContent = "Alta";
+      }
+    }
+
+    const vImc = parseFloat(document.getElementById("imc")?.value || "");
+    const nodoImc = document.getElementById("nodo-imc");
+    const estadoImc = document.getElementById("estado-nodo-imc");
+    if (nodoImc && estadoImc) {
+      nodoImc.classList.remove("nodo-optimo", "nodo-alerta", "nodo-riesgo");
+      if (isNaN(vImc)) {
+        estadoImc.textContent = "Pendiente";
+      } else if (vImc < 25) {
+        nodoImc.classList.add("nodo-optimo");
+        estadoImc.textContent = "Normal";
+      } else if (vImc < 30) {
+        nodoImc.classList.add("nodo-alerta");
+        estadoImc.textContent = "Sobrepeso";
+      } else {
+        nodoImc.classList.add("nodo-riesgo");
+        estadoImc.textContent = "Obesidad";
+      }
+    }
+
+    const vGen = parseFloat(document.getElementById("pedigri_diabetes")?.value || "");
+    const nodoGen = document.getElementById("nodo-genetica");
+    const estadoGen = document.getElementById("estado-nodo-genetica");
+    if (nodoGen && estadoGen) {
+      nodoGen.classList.remove("nodo-optimo", "nodo-alerta", "nodo-riesgo");
+      if (isNaN(vGen)) {
+        estadoGen.textContent = "Pendiente";
+      } else if (vGen <= 0.35) {
+        nodoGen.classList.add("nodo-optimo");
+        estadoGen.textContent = "Bajo";
+      } else if (vGen <= 0.65) {
+        nodoGen.classList.add("nodo-alerta");
+        estadoGen.textContent = "Medio";
+      } else {
+        nodoGen.classList.add("nodo-riesgo");
+        estadoGen.textContent = "Hereditario";
+      }
+    }
+  }
 
   // Actualizar la mini barra de rango visual de cada campo
   function actualizarMarcadorVisual(campo, valor) {
@@ -125,6 +251,8 @@ document.addEventListener("DOMContentLoaded", () => {
       if (/[eE+-]/.test(input.value)) {
         input.value = input.value.replace(/[eE+-]/g, "");
       }
+
+      actualizarMatrizTelemetria();
 
       const valorTexto = input.value.trim().replace(",", ".");
       if (valorTexto === "") {
@@ -321,6 +449,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const faseConfig = FASES[faseActual];
         const esValida = validarFase(faseConfig.campos);
         if (esValida) {
+          reproducirBeep(480, 0.05, "sine");
           const tabActual = document.getElementById(`tab-${faseConfig.id}`);
           if (tabActual) tabActual.classList.add("completado");
           irAFase(faseActual + 1);
@@ -335,6 +464,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (btnPasoAnterior) {
     btnPasoAnterior.addEventListener("click", () => {
       if (faseActual > 0) {
+        reproducirBeep(380, 0.05, "sine");
         irAFase(faseActual - 1);
       }
     });
@@ -343,6 +473,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Navegación táctil por pestañas
   document.querySelectorAll(".paso-tab").forEach(tab => {
     tab.addEventListener("click", () => {
+      reproducirBeep(440, 0.04, "sine");
       const filtro = tab.dataset.filtro;
       if (filtro === "todos") {
         irAFase(-1);
@@ -361,6 +492,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Chips de seleccion rapida con micro-interaccion
   document.querySelectorAll(".chip-btn").forEach(btn => {
     btn.addEventListener("click", () => {
+      reproducirBeep(520, 0.06, "sine");
       limpiarErrores();
       document.querySelectorAll(".chip-btn").forEach(b => b.classList.remove("activo"));
       btn.classList.add("activo");
@@ -375,6 +507,7 @@ document.addEventListener("DOMContentLoaded", () => {
             actualizarMarcadorVisual(campo, valor);
           }
         }
+        actualizarMatrizTelemetria();
         FASES.forEach(f => {
           document.getElementById(`tab-${f.id}`)?.classList.add("completado");
         });
@@ -399,14 +532,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
     listaFactores.innerHTML = "";
     listaFactores.style.display = "none";
+
+    const diagAcciones = document.getElementById("diag-acciones-resultado");
+    if (diagAcciones) diagAcciones.style.display = "none";
+    ultimoResultado = null;
   }
 
   // Boton Limpiar campos
   if (btnLimpiar) {
     btnLimpiar.addEventListener("click", () => {
+      reproducirBeep(350, 0.05, "sine");
       limpiarErrores();
       form.reset();
       resetearTarjetaDiagnostico();
+      actualizarMatrizTelemetria();
       document.querySelectorAll(".chip-btn").forEach(b => b.classList.remove("activo"));
       document.querySelectorAll(".paso-tab").forEach(t => t.classList.remove("completado"));
       Object.keys(REGLAS).forEach(c => actualizarMarcadorVisual(c, REGLAS[c].min));
@@ -487,6 +626,22 @@ document.addEventListener("DOMContentLoaded", () => {
       <span>Analizando Biomarcadores...</span>
     `;
 
+    // Overlay cinemático de escaneo láser clínico
+    const overlayEscaneo = document.getElementById("overlay-escaneo-clinico");
+    const escaneoBarraFill = document.getElementById("escaneo-barra-fill");
+    const escaneoTextoFase = document.getElementById("escaneo-texto-fase");
+
+    if (overlayEscaneo) {
+      overlayEscaneo.style.display = "flex";
+      if (escaneoBarraFill) escaneoBarraFill.style.width = "0%";
+      if (escaneoTextoFase) escaneoTextoFase.textContent = "Analizando Ensamble Bioestadístico...";
+      setTimeout(() => {
+        if (escaneoBarraFill) escaneoBarraFill.style.width = "100%";
+        reproducirBeep(520, 0.08, "sine", 0.03);
+      }, 30);
+    }
+
+    const delayPromesa = new Promise(resolve => setTimeout(resolve, 650));
     let resultado = null;
 
     if (!esGitHubPages) {
@@ -521,10 +676,15 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
+    await delayPromesa;
+    if (overlayEscaneo) overlayEscaneo.style.display = "none";
+
     if (resultado && resultado.exito) {
       // Haptic feedback en dispositivos compatibles
       if (navigator.vibrate) navigator.vibrate(50);
+      ultimoResultado = { data: resultado, payload: payload };
       actualizarInterfazResultado(resultado);
+      reproducirSonidoExito();
       tarjetaDiag.scrollIntoView({ behavior: "smooth", block: "start" });
     }
 
@@ -591,6 +751,85 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
       listaFactores.style.display = "none";
     }
+
+    // Mostrar botón de generar ficha médica oficial
+    const diagAcciones = document.getElementById("diag-acciones-resultado");
+    if (diagAcciones) diagAcciones.style.display = "flex";
+  }
+
+  // Generador de Ficha Médica Oficial Imprimible / PDF
+  function mostrarModalFichaClinica(data, payload) {
+    const fechaStr = new Date().toLocaleDateString("es-MX", {
+      year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"
+    });
+    const colorBg = data.color_alerta === "verde" ? "#f0fdf4" : data.color_alerta === "ambar" ? "#fffbeb" : "#fef2f2";
+    const colorBorde = data.color_alerta === "verde" ? "#86efac" : data.color_alerta === "ambar" ? "#fde68a" : "#fca5a5";
+    const colorTexto = data.color_alerta === "verde" ? "#166534" : data.color_alerta === "ambar" ? "#92400e" : "#991b1b";
+
+    const html = `
+      <div class="ficha-clinica-imprimible">
+        <div class="ficha-encabezado">
+          <div class="ficha-titulo">
+            <h3>Ficha Médica · Evaluación GlucoCare</h3>
+            <span>ID de Consulta: #${Math.floor(100000 + Math.random() * 900000)} · ${fechaStr}</span>
+          </div>
+        </div>
+        <div class="ficha-dictamen-box" style="background: ${colorBg}; border: 1px solid ${colorBorde}; color: ${colorTexto};">
+          <div style="font-weight: 800; font-size: 14px; margin-bottom: 4px;">
+            ${data.diagnostico} (Probabilidad: ${data.probabilidad_diabetes}%)
+          </div>
+          <div style="font-size: 12px; line-height: 1.4;">${data.recomendacion}</div>
+        </div>
+        <div class="ficha-tabla-grid">
+          <div class="ficha-dato-item">
+            <span class="ficha-dato-label">Glucosa</span>
+            <span class="ficha-dato-valor">${payload.glucosa} mg/dL</span>
+          </div>
+          <div class="ficha-dato-item">
+            <span class="ficha-dato-label">Presión Arterial</span>
+            <span class="ficha-dato-valor">${payload.presion_arterial} mmHg</span>
+          </div>
+          <div class="ficha-dato-item">
+            <span class="ficha-dato-label">IMC Corporal</span>
+            <span class="ficha-dato-valor">${payload.imc} kg/m²</span>
+          </div>
+          <div class="ficha-dato-item">
+            <span class="ficha-dato-label">Insulina Sérica</span>
+            <span class="ficha-dato-valor">${payload.insulina} μU/mL</span>
+          </div>
+          <div class="ficha-dato-item">
+            <span class="ficha-dato-label">Pliegue Cutáneo</span>
+            <span class="ficha-dato-valor">${payload.grosor_piel} mm</span>
+          </div>
+          <div class="ficha-dato-item">
+            <span class="ficha-dato-label">Pedigrí Genético</span>
+            <span class="ficha-dato-valor">${payload.pedigri_diabetes}</span>
+          </div>
+          <div class="ficha-dato-item">
+            <span class="ficha-dato-label">Edad</span>
+            <span class="ficha-dato-valor">${payload.edad} años</span>
+          </div>
+          <div class="ficha-dato-item">
+            <span class="ficha-dato-label">Embarazos</span>
+            <span class="ficha-dato-valor">${payload.embarazos}</span>
+          </div>
+        </div>
+        <button type="button" class="btn-imprimir-ficha" onclick="window.print()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+          <span>Imprimir o Guardar en PDF</span>
+        </button>
+      </div>
+    `;
+    abrirModal("Ficha Médica Oficial", html);
+  }
+
+  const btnExportarFicha = document.getElementById("btn-exportar-ficha");
+  if (btnExportarFicha) {
+    btnExportarFicha.addEventListener("click", () => {
+      if (!ultimoResultado) return;
+      reproducirBeep(600, 0.06, "sine");
+      mostrarModalFichaClinica(ultimoResultado.data, ultimoResultado.payload);
+    });
   }
 
   // Modal estilo Bottom Sheet
